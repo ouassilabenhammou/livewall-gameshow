@@ -48,3 +48,6 @@
 
 13. **Prompt 13**
     Bij de vraag over het type project krijgt de speler een meerkeuze vraag om uit te kiezen. Het logo van livewall gaat weg en ieder vraag komt op het scherm te staan. De camera beweegt half naar de speler en het scherm moet volledig in beeld en bij de vraag over het budget draait de presentator aan het rad. Het budget is gebasseerd op de keuze van het type project. De camera beweegt naar het rad toe.
+
+14. **Prompt 14**
+    Verdeel het publiek rondom de stage in twee groepen, links een deel en rechts een deel van het podium
