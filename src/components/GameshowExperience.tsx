@@ -21,6 +21,16 @@ const TURN_ANGLE = Math.PI / 9;
 
 // ─── TV screen — shows question text during game ─────────────────────────────
 
+function TVScreenLogo() {
+  const texture = useTexture("/livewall-logo.svg");
+  return (
+    <mesh position={[0, 0, 0.072]} scale={[0.8, 0.8, 0.5]}>
+      <planeGeometry args={[4.5, 1.0]} />
+      <meshBasicMaterial map={texture} transparent alphaTest={0.05} />
+    </mesh>
+  );
+}
+
 function TVScreen({
   active,
   questionText,
@@ -28,46 +38,27 @@ function TVScreen({
   active: boolean;
   questionText?: string;
 }) {
+  const showLogo = !questionText;
+
   return (
     <group position={[-0.5, 3.3, -2.55]}>
       {/* Slim mounting plate */}
       <mesh position={[0, 0, -0.06]} receiveShadow>
-        <boxGeometry args={[5.2, 1.5, 0.04]} />
+        <boxGeometry args={[5.2, 2.5, 0.04]} />
         <meshStandardMaterial
           color="#0a0a12"
           roughness={0.75}
           metalness={0.2}
         />
       </mesh>
-      {/* Outer bezel */}
-      <mesh castShadow>
-        <boxGeometry args={[4.7, 1.1, 0.11]} />
-        <meshStandardMaterial
-          color="#060606"
-          roughness={0.25}
-          metalness={0.7}
-        />
-      </mesh>
-      {/* Screen edge highlight */}
-      <mesh position={[0, 0, 0.058]}>
-        <boxGeometry args={[4.42, 0.88, 0.005]} />
-        <meshStandardMaterial
-          color={LW_LIME}
-          emissive={LW_LIME}
-          emissiveIntensity={active && questionText ? 0.28 : 0.04}
-          roughness={0.1}
-        />
-      </mesh>
-      {/* Display background */}
-      <mesh position={[0, 0, 0.062]}>
-        <boxGeometry args={[4.28, 0.84, 0.004]} />
-        <meshStandardMaterial
-          color="#000000"
-          emissive="#000814"
-          emissiveIntensity={active && questionText ? 0.3 : 0.0}
-          roughness={0.05}
-        />
-      </mesh>
+
+      {/* Logo — shown when no question is displayed */}
+      {showLogo && (
+        <Suspense fallback={null}>
+          <TVScreenLogo />
+        </Suspense>
+      )}
+
       {/* Question text on screen */}
       {active && questionText && (
         <Text
@@ -336,26 +327,6 @@ function RoundStage({ active }: { active: boolean }) {
       {/* ── Glow lights — only after start ── */}
       {active && (
         <>
-          {/* Top edge lime ring */}
-          <mesh position={[-0.5, STAGE_TOP_Y, 0.5]}>
-            <torusGeometry args={[3.4, 0.032, 8, 96]} />
-            <meshStandardMaterial
-              color={LW_LIME}
-              emissive={LW_LIME}
-              emissiveIntensity={1.3}
-            />
-          </mesh>
-
-          {/* Lower step accent ring */}
-          <mesh position={[-0.5, 0.082, 0.5]}>
-            <torusGeometry args={[3.85, 0.018, 8, 96]} />
-            <meshStandardMaterial
-              color={LW_LIME}
-              emissive={LW_LIME}
-              emissiveIntensity={0.65}
-            />
-          </mesh>
-
           {/* Inner surface ring */}
           <mesh
             position={[-0.5, STAGE_TOP_Y + 0.006, 0.5]}
@@ -432,7 +403,7 @@ function Backdrop() {
     <>
       <mesh position={[0, 3.5, -2.8]} receiveShadow>
         <planeGeometry args={[22, 9]} />
-        <meshStandardMaterial color="#080808" roughness={0.85} />
+        <meshStandardMaterial color="white" roughness={0.85} />
       </mesh>
       <mesh
         position={[-10, 3.5, 0]}

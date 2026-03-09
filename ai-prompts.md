@@ -51,3 +51,6 @@
 
 14. **Prompt 14**
     Verdeel het publiek rondom de stage in twee groepen, links een deel en rechts een deel van het podium
+
+15. **Prompt 15**
+    Voeg het logo van livewall toe op het tv scherm
