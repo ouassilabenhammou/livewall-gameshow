@@ -19,95 +19,6 @@ const LW_LIME = "#c8ff00";
 const LW_OFF_WHITE = "#f5f5e8";
 const TURN_ANGLE = Math.PI / 9;
 
-// ─── Applause synthesizer (Web Audio API) ────────────────────────────────────
-
-function playApplause(duration = 4.5) {
-  try {
-    type AnyAudioContext = typeof AudioContext & {
-      webkitAudioContext?: typeof AudioContext;
-    };
-    const Ctx = (window.AudioContext ??
-      (window as unknown as AnyAudioContext)
-        .webkitAudioContext) as typeof AudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx();
-    const sr = ctx.sampleRate;
-
-    // Build a stereo buffer of overlapping clap bursts
-    const buf = ctx.createBuffer(2, sr * duration, sr);
-    const clapCount = Math.floor(duration * 22); // ~22 claps/sec simulates crowd
-
-    for (let ch = 0; ch < 2; ch++) {
-      const data = buf.getChannelData(ch);
-
-      for (let c = 0; c < clapCount; c++) {
-        // Random start with slight jitter per channel for stereo width
-        const start =
-          (c / clapCount) * duration * sr + (Math.random() - 0.5) * 0.07 * sr;
-        const clapLen = Math.floor((0.06 + Math.random() * 0.08) * sr);
-
-        for (let s = 0; s < clapLen; s++) {
-          const idx = Math.floor(start) + s;
-          if (idx < 0 || idx >= data.length) continue;
-          const t = s / sr;
-          // Sharp attack, exponential decay per clap
-          const env = Math.exp(-t / 0.025);
-          // Crowd envelope: ramp up → sustain → fade out
-          const globalT = idx / sr / duration;
-          const crowd =
-            globalT < 0.15
-              ? globalT / 0.15
-              : globalT < 0.75
-                ? 1.0
-                : (1 - globalT) / 0.25;
-          data[idx] += (Math.random() * 2 - 1) * env * crowd * 0.55;
-        }
-      }
-    }
-
-    const source = ctx.createBufferSource();
-    source.buffer = buf;
-
-    // Bandpass: clapping sits mainly around 1–4 kHz
-    const bp = ctx.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.frequency.value = 1800;
-    bp.Q.value = 0.5;
-
-    // Presence boost
-    const shelf = ctx.createBiquadFilter();
-    shelf.type = "highshelf";
-    shelf.frequency.value = 2800;
-    shelf.gain.value = 5;
-
-    // Gentle convolution-style reverb via a short delay feedback loop
-    const delay = ctx.createDelay(0.15);
-    delay.delayTime.value = 0.06;
-    const feedback = ctx.createGain();
-    feedback.gain.value = 0.28;
-
-    const master = ctx.createGain();
-    master.gain.value = 2.2;
-
-    source.connect(bp);
-    bp.connect(shelf);
-    shelf.connect(master);
-    // Reverb tail
-    shelf.connect(delay);
-    delay.connect(feedback);
-    feedback.connect(delay);
-    feedback.connect(master);
-
-    master.connect(ctx.destination);
-
-    source.start();
-    source.stop(ctx.currentTime + duration + 0.3);
-    source.onended = () => ctx.close();
-  } catch {
-    // Audio not available — fail silently
-  }
-}
-
 // ─── TV screen — shows question text during game ─────────────────────────────
 
 function TVScreen({
@@ -1232,7 +1143,6 @@ export default function GameshowExperience() {
     if (!trimmed) return;
     setPlayerName(trimmed);
     setPhase("toPlayer");
-    playApplause(4.5);
     setTimeout(() => setPhase("toPresenter"), 2000);
     setTimeout(() => setPhase("zoomIn"), 4200);
     setTimeout(() => {
