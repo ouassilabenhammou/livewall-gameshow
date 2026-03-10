@@ -15,8 +15,11 @@ import CameraRig, { type GamePhase } from "./CameraRig";
 import PixelCharacter from "./PixelCharacter";
 import Audience from "./Audience";
 
-const LW_LIME = "#c8ff00";
-const LW_OFF_WHITE = "#f5f5e8";
+// Kleuren
+const LW_BLACK = "#00000";
+const LW_OFF_WHITE = "#FAFDF9";
+const LW_LIME = "#D1FF00";
+
 const TURN_ANGLE = Math.PI / 9;
 
 // ─── TV screen — shows question text during game ─────────────────────────────
@@ -290,52 +293,70 @@ function Podium({
 
 // Platform top is at y = 0.30
 const STAGE_TOP_Y = 0.3;
+const STAGE_MAIN_Y = 0.1;
 
 function RoundStage({ active }: { active: boolean }) {
   return (
     <group>
       {/* ── Outer base step (low ring) ── */}
-      <mesh position={[-0.5, 0.04, 0.5]} receiveShadow castShadow>
-        <cylinderGeometry args={[3.85, 4.05, 0.08, 80]} />
-        <meshStandardMaterial
-          color="#0d0d0d"
-          roughness={0.18}
-          metalness={0.58}
-        />
+      <mesh position={[0, 0.01, 0.5]} receiveShadow castShadow>
+        <cylinderGeometry args={[3.85, 4.0, 0.2, 80]} />
+        <meshStandardMaterial color="h" roughness={0.5} metalness={0.98} />
       </mesh>
 
       {/* ── Main raised platform ── */}
-      <mesh position={[-0.5, 0.19, 0.5]} receiveShadow castShadow>
-        <cylinderGeometry args={[3.42, 3.62, 0.22, 80]} />
-        <meshStandardMaterial
-          color="#151515"
-          roughness={0.1}
-          metalness={0.72}
-        />
+      <mesh position={[0, 0.1, 0.5]} receiveShadow castShadow>
+        <cylinderGeometry args={[3.42, 3.42, 0.3, 98]} />
+        <meshStandardMaterial color="white" roughness={0.1} metalness={0.7} />
       </mesh>
 
       {/* ── Top cap — polished surface ── */}
-      <mesh position={[-0.5, 0.305, 0.5]} receiveShadow>
-        <cylinderGeometry args={[3.4, 3.4, 0.01, 80]} />
+
+      <mesh position={[0, 0.305, 0.5]} receiveShadow>
+        <cylinderGeometry args={[2.9, 1.4, 0, 80]} />
+        <meshStandardMaterial color="white" roughness={0.06} metalness={0.8} />
+      </mesh>
+
+      <mesh
+        position={[0, STAGE_TOP_Y + 0.006, 0.5]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <ringGeometry args={[2.75, 2.82, 80]} />
         <meshStandardMaterial
-          color="#1c1c1c"
-          roughness={0.06}
-          metalness={0.8}
+          color={LW_LIME}
+          emissive={LW_LIME}
+          emissiveIntensity={0.45}
+          transparent
+          opacity={0.1}
         />
       </mesh>
 
-      {/* ── Glow lights — only after start ── */}
+      {/* ── Glow lights — after start ── */}
       {active && (
         <>
           {/* Inner surface ring */}
           <mesh
-            position={[-0.5, STAGE_TOP_Y + 0.006, 0.5]}
+            position={[0, STAGE_TOP_Y + 0.006, 0.5]}
             rotation={[-Math.PI / 2, 0, 0]}
           >
             <ringGeometry args={[2.75, 2.82, 80]} />
             <meshStandardMaterial
               color={LW_LIME}
               emissive={LW_LIME}
+              emissiveIntensity={0.45}
+              transparent
+              opacity={1.0}
+            />
+          </mesh>
+
+          <mesh
+            position={[0, STAGE_MAIN_Y + 0.006, 0.5]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <ringGeometry args={[5.75, 2.82, 80]} />
+            <meshStandardMaterial
+              color="white"
+              emissive="red"
               emissiveIntensity={0.45}
               transparent
               opacity={0.5}
@@ -366,31 +387,16 @@ function StudioFloor() {
         receiveShadow
       >
         <planeGeometry args={[30, 18]} />
-        <meshStandardMaterial
-          color="#080808"
-          roughness={0.18}
-          metalness={0.55}
-        />
+        <meshStandardMaterial color="grey" roughness={0.18} metalness={0.55} />
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 3.2]}>
-        <planeGeometry args={[18, 0.06]} />
-        <meshStandardMaterial
-          color={LW_LIME}
-          emissive={LW_LIME}
-          emissiveIntensity={0.9}
-        />
-      </mesh>
+
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.005, -0.5]}
         receiveShadow
       >
         <planeGeometry args={[14, 5]} />
-        <meshStandardMaterial
-          color="#0c0c0c"
-          roughness={0.22}
-          metalness={0.5}
-        />
+        <meshStandardMaterial color="grey" roughness={0.22} metalness={0.5} />
       </mesh>
     </>
   );
@@ -421,19 +427,6 @@ function Backdrop() {
         <planeGeometry args={[4, 9]} />
         <meshStandardMaterial color="#060606" roughness={0.9} />
       </mesh>
-      {/* Deco verticals */}
-      {[-8, -5.5, -3, 3, 5.5, 8].map((x, i) => (
-        <mesh key={i} position={[x, 3.5, -2.75]}>
-          <boxGeometry args={[0.05, 7, 0.02]} />
-          <meshStandardMaterial
-            color={i % 2 === 0 ? LW_LIME : LW_OFF_WHITE}
-            emissive={i % 2 === 0 ? LW_LIME : LW_OFF_WHITE}
-            emissiveIntensity={i % 2 === 0 ? 0.8 : 0.3}
-            transparent
-            opacity={0.95}
-          />
-        </mesh>
-      ))}
     </>
   );
 }
@@ -647,14 +640,14 @@ function Scene({
       <fog attach="fog" args={["#000000", 12, 26]} />
 
       {/* Player — on round stage, rotated toward presenter */}
-      <group position={[-2.5, STAGE_TOP_Y, 0]} rotation={[0, TURN_ANGLE, 0]}>
+      <group position={[-1.8, STAGE_TOP_Y, 0]} rotation={[0, TURN_ANGLE, 0]}>
         <Podium position={[0, 0, 0.8]} accentColor={LW_LIME} width={1.4} />
         {!isIdle && <PixelCharacter type="player" position={[0, 0.05, 0]} />}
         <PodiumScreen playerName={playerName} active={screenActive} />
       </group>
 
       {/* Presenter — on round stage, rotated toward player */}
-      <group position={[1.5, STAGE_TOP_Y, 0]} rotation={[0, -TURN_ANGLE, 0]}>
+      <group position={[1.6, STAGE_TOP_Y, 0]} rotation={[0, -TURN_ANGLE, 0]}>
         <Podium position={[0, 0, 0.8]} accentColor={LW_OFF_WHITE} width={1.8} />
         {!isIdle && <PixelCharacter type="presenter" position={[0, 0.05, 0]} />}
         <PresenterGreeting text={greetingText} visible={showGreeting} />
@@ -880,7 +873,7 @@ function BudgetWheel({
 
   return (
     // Positioned to the right of the presenter on stage
-    <group position={[2.8, STAGE_TOP_Y, -0.2]}>
+    <group position={[2.8, STAGE_TOP_Y, 0.2]}>
       {/* Vertical pole */}
       <mesh position={[0, 0.8, 0]} castShadow>
         <cylinderGeometry args={[0.055, 0.07, 1.6, 16]} />
