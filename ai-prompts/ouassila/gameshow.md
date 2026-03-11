@@ -62,3 +62,6 @@
 
 17. **Prompt 17**
     Na het invoeren van de naam moet de camera direct gecentreerd inzoomen op de speler, de presentator en het scherm moeten in beeld zijn. Plaats op de voorkant van de presentator desk hetzelfde kleine scherm als bij de speler maar dan met "presentator". Verwijder de voortgang van de vragen in de invoervelden.
+
+18. **Prompt 18**
+    Maak één zachte mistige spotlight op de spreker met vage randen en een geleidelijke overgang van licht.

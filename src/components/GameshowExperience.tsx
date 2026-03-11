@@ -3,6 +3,7 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import Image from "next/image";
 import { Text, Html, useTexture } from "@react-three/drei";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { Suspense, useState, useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import CameraRig, { type GamePhase } from "./CameraRig";
@@ -555,57 +556,64 @@ function Backdrop() {
 
 type Speaker = "player" | "presenter" | null;
 
-// ─── Single focused white spotlight on active speaker ─────────────────────────
+// ─── Zachte mistige spotlight op de actieve spreker ──────────────────────────
 
 function SpeakerSpotlight({ speaker }: { speaker: Speaker }) {
   const isActive = speaker === "player" || speaker === "presenter";
-
-  // Position above whichever character is aan het woord
   const x = speaker === "player" ? -1.8 : 1.6;
-  // Licht boven de persoon, iets naar achteren zodat het niet over de desks valt
-  const lightPos: [number, number, number] = [x, 8.5, 2.4];
-  // Beam center tussen plafond en vloer, recht boven de persoon maar een fractie naar achteren
-  const beamPos: [number, number, number] = [x, 4.4, 0.5];
-  const poolPos: [number, number, number] = [x, STAGE_TOP_Y + 0.001, -0.1];
+
+  // Lichtbron hoog boven de spreker
+  const lightPos: [number, number, number] = [x, 9.2, 1.8];
+  // Conus-middelpunt: halverwege tussen lichtbron (y=9.2) en vloer (y=0.3)
+  const coneCenter: [number, number, number] = [x, 4.75, 0.9];
+  const coneHeight = 8.9;
+  // Zachte vloerpoel direct op het podium
+
+  if (!isActive) return null;
 
   return (
     <>
+      {/* De eigenlijke lichtbron — hoge penumbra voor vage overgang */}
       <spotLight
         position={lightPos}
-        angle={0.4}
-        penumbra={0.85}
-        intensity={isActive ? 4.2 : 0.0}
-        color="#ffffff"
+        angle={0.32}
+        penumbra={0.98}
+        intensity={5.5}
+        color="#fff8f0"
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
-        distance={32}
-        decay={1.1}
+        distance={28}
+        decay={1.3}
       />
-      {/* Rechte lichtkolom van plafond tot vloer */}
-      <mesh position={beamPos} rotation={[Math.PI, 0, 0]} visible={isActive}>
-        {/* Cilinder: overal even breed */}
-        <cylinderGeometry args={[1.0, 1.0, 8.2, 30, 1, true]} />
+
+      {/* Kern van de lichtstraal — smal, licht zichtbaar */}
+      <mesh position={coneCenter}>
+        <coneGeometry args={[0.55, coneHeight, 32, 1, true]} />
         <meshStandardMaterial
           color="#ffffff"
           emissive="#ffffff"
-          emissiveIntensity={0.38}
+          emissiveIntensity={0.5}
           transparent
-          opacity={0.11}
+          opacity={0.028}
           depthWrite={false}
           side={THREE.DoubleSide}
           blending={THREE.AdditiveBlending}
         />
       </mesh>
-      {/* Bright pool of light on floor */}
-      <mesh position={poolPos} rotation={[-Math.PI / 2, 0, 0]} visible={isActive}>
-        <circleGeometry args={[0.95, 32]} />
+
+      {/* Eerste mistige halo — iets breder, bijna onzichtbaar */}
+      <mesh position={coneCenter}>
+        <coneGeometry args={[1.1, coneHeight, 32, 1, true]} />
         <meshStandardMaterial
           color="#ffffff"
           emissive="#ffffff"
-          emissiveIntensity={0.75}
+          emissiveIntensity={0.2}
           transparent
-          opacity={0.45}
+          opacity={0.04}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+          blending={THREE.AdditiveBlending}
         />
       </mesh>
     </>
@@ -1176,7 +1184,7 @@ export default function GameshowExperience() {
       const step = INTERVIEW_STEPS[interviewStep];
       if (!step) return;
       setAnswers((prev) => ({ ...prev, [step.key]: val }));
-       // Show player's answer briefly as a speech bubble
+      // Show player's answer briefly as a speech bubble
       setPlayerReplyText(val);
       setShowPlayerReply(true);
       setTimeout(() => {
