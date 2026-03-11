@@ -11,7 +11,8 @@ export type GamePhase =
   | "zoomIn"
   | "question"
   | "questionPlayer"
-  | "wheelZoom";
+  | "wheelZoom"
+  | "tvBudget";
 
 interface CameraTarget {
   position: THREE.Vector3;
@@ -56,9 +57,15 @@ const CAMERA_TARGETS: Record<GamePhase, CameraTarget> = {
   },
   // Close-up on the budget wheel near presenter
   wheelZoom: {
-    position: new THREE.Vector3(3.2, 2.5, 2.6),
-    lookAt: new THREE.Vector3(2.8, 1.85, -0.2),
+    position: new THREE.Vector3(-3.2, 2.5, 2.6),
+    lookAt: new THREE.Vector3(-2.8, 1.85, -0.2),
     lerpSpeed: 0.020,
+  },
+  // Focus on TV screen so budget text is clearly visible
+  tvBudget: {
+    position: new THREE.Vector3(0.2, 3.2, 4.6),
+    lookAt: new THREE.Vector3(-0.5, 3.2, -2.55),
+    lerpSpeed: 0.02,
   },
 };
 

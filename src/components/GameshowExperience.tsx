@@ -872,13 +872,8 @@ function BudgetWheel({
   });
 
   return (
-    // Positioned to the right of the presenter on stage
-    <group position={[2.8, STAGE_TOP_Y, 0.2]}>
-      {/* Vertical pole */}
-      <mesh position={[0, 0.8, 0]} castShadow>
-        <cylinderGeometry args={[0.055, 0.07, 1.6, 16]} />
-        <meshStandardMaterial color="#1a1a1a" roughness={0.3} metalness={0.7} />
-      </mesh>
+    // Positioned to the other side of the studio on stage
+    <group position={[-2.8, STAGE_TOP_Y, 0.2]}>
       {/* Base disc */}
       <mesh position={[0, 0.04, 0]} receiveShadow>
         <cylinderGeometry args={[0.3, 0.35, 0.08, 32]} />
@@ -915,16 +910,6 @@ function BudgetWheel({
                 {budget}
               </Text>
             </group>
-          );
-        })}
-        {/* Divider lines between segments */}
-        {budgets.map((_, i) => {
-          const angle = i * segAngle;
-          return (
-            <mesh key={`div-${i}`} rotation={[0, 0, angle]}>
-              <planeGeometry args={[0.012, 1.2]} />
-              <meshStandardMaterial color="#000000" side={THREE.DoubleSide} />
-            </mesh>
           );
         })}
         {/* Center hub */}
@@ -991,6 +976,7 @@ export default function GameshowExperience() {
   const [wheelBudgets, setWheelBudgets] = useState<string[]>([]);
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelResult, setWheelResult] = useState("");
+  const [wheelCanSpin, setWheelCanSpin] = useState(false);
 
   // ── Homepage / send state ──
   const [showHomepage, setShowHomepage] = useState(false);
@@ -1036,9 +1022,12 @@ export default function GameshowExperience() {
       const projectType = answers.projectType ?? "";
       const budgets = BUDGET_BY_PROJECT[projectType] ?? DEFAULT_BUDGETS;
       setWheelBudgets(budgets);
+      setWheelResult("");
+      setWheelSpinning(false);
+      setWheelCanSpin(false);
       const t = setTimeout(() => {
         setPhase("wheelZoom");
-        setTimeout(() => setWheelSpinning(true), 1800);
+        setWheelCanSpin(true);
       }, 600);
       return () => clearTimeout(t);
     }
@@ -1066,11 +1055,17 @@ export default function GameshowExperience() {
   const handleWheelComplete = useCallback(
     (result: string) => {
       setWheelSpinning(false);
+      setWheelCanSpin(false);
       setWheelResult(result);
       setAnswers((prev) => ({ ...prev, budget: result }));
       setScreenText(`BUDGET: ${result}`);
-      // After showing result, advance to outro
+      // After result: first move camera to TV screen, then advance to outro
       const outroIdx = INTERVIEW_STEPS.findIndex((s) => s.isOutro);
+      // Short pause on the wheel result overlay
+      setTimeout(() => {
+        setPhase("tvBudget");
+      }, 800);
+      // Then move back to presenter for outro
       setTimeout(() => {
         setPhase("questionPlayer");
         setScreenText("");
@@ -1078,7 +1073,7 @@ export default function GameshowExperience() {
         setPresenterFullText(
           INTERVIEW_STEPS[outroIdx].getPresenterText(playerName),
         );
-      }, 3000);
+      }, 4000);
     },
     [playerName],
   );
@@ -1125,6 +1120,7 @@ export default function GameshowExperience() {
     setWheelBudgets([]);
     setWheelSpinning(false);
     setWheelResult("");
+    setWheelCanSpin(false);
     setEditingKey(null);
     setEditValue("");
   }, []);
@@ -1355,6 +1351,25 @@ export default function GameshowExperience() {
             </div>
           )}
 
+        {/* ── Wheel spin button ── */}
+        {phase === "wheelZoom" &&
+          wheelCanSpin &&
+          !wheelSpinning &&
+          !wheelResult && (
+            <div className="pointer-events-auto absolute left-1/2 bottom-20 -translate-x-1/2">
+              <button
+                onClick={() => {
+                  if (!wheelCanSpin || wheelSpinning || wheelResult) return;
+                  setWheelCanSpin(false);
+                  setWheelSpinning(true);
+                }}
+                className="font-pixel border-2 border-[#c8ff00] bg-[#c8ff00] px-8 py-3 text-sm text-black shadow-[0_0_30px_rgba(200,255,0,0.5)] transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
+              >
+                DRAAI HET RAD →
+              </button>
+            </div>
+          )}
+
         {/* ── Wheel spinning banner ── */}
         {phase === "wheelZoom" && wheelSpinning && !wheelResult && (
           <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -1366,13 +1381,15 @@ export default function GameshowExperience() {
 
         {/* ── Wheel result banner ── */}
         {wheelResult && phase === "wheelZoom" && (
-          <div className="pointer-events-none absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2 text-center">
-            <p className="font-pixel mb-2 text-[9px] tracking-[0.3em] text-[#c8ff00]/70">
-              BUDGET
-            </p>
-            <p className="font-pixel text-4xl text-white drop-shadow-lg">
-              {wheelResult}
-            </p>
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="rounded-sm bg-black/70 px-10 py-6 text-center shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+              <p className="font-pixel mb-3 text-[10px] tracking-[0.4em] text-[#c8ff00]">
+                BUDGET
+              </p>
+              <p className="font-pixel text-5xl text-white drop-shadow-[0_0_25px_rgba(0,0,0,0.9)]">
+                {wheelResult}
+              </p>
+            </div>
           </div>
         )}
 
