@@ -1,4 +1,6 @@
-Prompt 1:
+# Escape Room maken (Cursor AI + ChatGPT)
+
+**Prompt 1**
 
 🎮 THE EXPERIENCE VAULT
 Cinematische Escape Contactervaring
@@ -217,7 +219,7 @@ Het contactformulier is volledig geïntegreerd
 Het voelt als een demo van hun eigen expertise
 
 
-Prompt 2:
+**Prompt 2**
 
 Nu alleen nog meer dit:
 
@@ -384,12 +386,11 @@ Knop:
 
 “Verzend naar LiveWall”
 
-
-Prompt 3:
+**Prompt 3**
 
 Zeg niet dat de kluis geen hadnmatige invoer toestaat want dat is raar, verander ook kamer 1 want dat is niet echt een spel nu, zorg dat je de naam, bedrijfsnaam en email wel op een pagina (Kamer) moet doen. Zodat het duidelijk is ook dat je nog steeds bijvoorbeeld in kamer 1 zit en nog niet ontsnapt bent uit kamer 1 of etc.. De budget kamer die is perfect niks aan doen. De andere kamers wel meer een puzzelachtig maken. En de code op het einde is ook perfect.
 
-Prompt 4:
+**Prompt 4**
 
 De thema en kleuren en achtergrond is perfect nu pa alleen de puzzels enzo aan. Dit is wat ik wil: 1	Escape room (the experience vault)
 1.1	Inleiding
