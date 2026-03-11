@@ -764,7 +764,7 @@ const INTERVIEW_STEPS: InterviewStep[] = [
   {
     key: "budget",
     getPresenterText: () =>
-      "Top keuze! Laten we jouw budget bepalen... Ik draai aan het rad!",
+      "Top keuze! Laten we jouw budget bepalen. Draai aan het rad!",
     hasInput: false,
     isWheel: true,
   },
@@ -928,7 +928,7 @@ function BudgetWheel({
 
   return (
     // Positioned to the other side of the studio on stage
-    <group position={[-2.8, STAGE_TOP_Y, 0.2]}>
+    <group position={[-3.8, STAGE_TOP_Y, 1.2]}>
       {/* Base disc */}
       <mesh position={[0, 0.04, 0]} receiveShadow>
         <cylinderGeometry args={[0.3, 0.35, 0.08, 32]} />
@@ -989,11 +989,11 @@ function BudgetWheel({
       </mesh>
 
       {/* Pointer arrow at 12 o'clock */}
-      <mesh position={[0, 2.87, 0.04]} rotation={[0, 0, Math.PI]}>
+      <mesh position={[0, 2.85, 0.06]} rotation={[0, 0, Math.PI]}>
         <coneGeometry args={[0.09, 0.22, 3]} />
         <meshStandardMaterial
-          color={LW_LIME}
-          emissive={LW_LIME}
+          color="black"
+          emissive="black"
           emissiveIntensity={0.8}
         />
       </mesh>
