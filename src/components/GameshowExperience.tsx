@@ -623,48 +623,6 @@ function SpeakerSpotlight({ speaker }: { speaker: Speaker }) {
   );
 }
 
-// ─── Kleine bewegende achtergrondlampen ──────────────────────────────────────
-
-function BackgroundMovingLights({ active }: { active: boolean }) {
-  const groupRef = useRef<THREE.Group>(null);
-
-  useFrame(({ clock }) => {
-    if (!active || !groupRef.current) return;
-    const t = clock.getElapsedTime();
-    groupRef.current.children.forEach((child, i) => {
-      const radius = 6.5 + i * 0.8;
-      const speed = 0.12 + i * 0.04;
-      const y = 6.0 + Math.sin(t * 0.5 + i) * 0.5;
-      const x = Math.cos(t * speed + i * 1.3) * radius;
-      const z = -4.0 + Math.sin(t * speed * 0.9 + i) * 1.8;
-      child.position.set(x, y, z);
-    });
-  });
-
-  return (
-    <group ref={groupRef} visible={active}>
-      {[0, 1, 2, 3].map((i) => (
-        <group key={i}>
-          <mesh>
-            <sphereGeometry args={[0.16, 12, 12]} />
-            <meshStandardMaterial
-              color={LW_LIME}
-              emissive={LW_LIME}
-              emissiveIntensity={1.6}
-            />
-          </mesh>
-          <pointLight
-            intensity={2.0}
-            color={LW_LIME}
-            distance={18}
-            decay={1.3}
-          />
-        </group>
-      ))}
-    </group>
-  );
-}
-
 // ─── Lights ──────────────────────────────────────────────────────────────────
 
 function StudioLights({
@@ -682,9 +640,6 @@ function StudioLights({
 
       {/* Enkele grote spotlight vanaf het plafond op de actieve spreker */}
       <SpeakerSpotlight speaker={speaker} />
-
-      {/* Kleine bewegende lampen in de achtergrond, pas na start */}
-      <BackgroundMovingLights active={active} />
     </>
   );
 }

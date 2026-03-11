@@ -57,9 +57,9 @@ const CAMERA_TARGETS: Record<GamePhase, CameraTarget> = {
   },
   // Close-up on the budget wheel near presenter
   wheelZoom: {
-    position: new THREE.Vector3(-3.2, 2.5, 2.6),
+    position: new THREE.Vector3(-3.2, 2.5, 3.6),
     lookAt: new THREE.Vector3(-2.8, 1.85, -0.2),
-    lerpSpeed: 0.020,
+    lerpSpeed: 0.02,
   },
   // Focus on TV screen so budget text is clearly visible
   tvBudget: {
