@@ -49,11 +49,11 @@ const CAMERA_TARGETS: Record<GamePhase, CameraTarget> = {
     lookAt: new THREE.Vector3(-0.4, 1.3, 0),
     lerpSpeed: 0.015,
   },
-  // Half-shot toward player with screen in frame
+  // Centered zoom: player + presenter + TV screen all in frame
   questionPlayer: {
-    position: new THREE.Vector3(-1.6, 3.0, 6.8),
-    lookAt: new THREE.Vector3(-0.8, 2.0, -1.2),
-    lerpSpeed: 0.022,
+    position: new THREE.Vector3(0, 3.6, 7.5),
+    lookAt: new THREE.Vector3(-0.3, 1.8, -1.2),
+    lerpSpeed: 0.08,
   },
   // Close-up on the budget wheel near presenter
   wheelZoom: {

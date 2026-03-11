@@ -175,6 +175,73 @@ function PodiumScreen({
   );
 }
 
+// ─── Presenter desk screen ───────────────────────────────────────────────────
+
+function PresenterScreenContent() {
+  return (
+    <>
+      {/* Lime nameplate strip */}
+      <mesh position={[0, 0.335, 0.892]}>
+        <boxGeometry args={[0.93, 0.13, 0.004]} />
+        <meshStandardMaterial
+          color={LW_LIME}
+          emissive={LW_LIME}
+          emissiveIntensity={1.0}
+        />
+      </mesh>
+      {/* "PRESENTATOR" label on strip */}
+      <Text
+        position={[0, 0.335, 0.898]}
+        fontSize={0.055}
+        color="#000000"
+        anchorX="center"
+        anchorY="middle"
+      >
+        PRESENTATOR
+      </Text>
+    </>
+  );
+}
+
+function PresenterPodiumScreen({ active }: { active: boolean }) {
+  return (
+    <group>
+      {/* Bezel */}
+      <mesh position={[0, 0.52, 0.86]} castShadow>
+        <boxGeometry args={[1.05, 0.52, 0.04]} />
+        <meshStandardMaterial
+          color="#050505"
+          roughness={0.25}
+          metalness={0.65}
+        />
+      </mesh>
+      {/* Display surface */}
+      <mesh position={[0, 0.52, 0.885]}>
+        <boxGeometry args={[0.95, 0.43, 0.005]} />
+        <meshStandardMaterial
+          color="#02020f"
+          emissive="#02020f"
+          emissiveIntensity={active ? 0.6 : 0.08}
+          roughness={0.05}
+        />
+      </mesh>
+      {active && (
+        <Suspense fallback={null}>
+          <PresenterScreenContent />
+        </Suspense>
+      )}
+      {active && (
+        <pointLight
+          position={[0, 0.3, 1.1]}
+          intensity={0.5}
+          color={LW_LIME}
+          distance={1.5}
+        />
+      )}
+    </group>
+  );
+}
+
 // ─── Presenter greeting speech bubble ────────────────────────────────────────
 
 function PresenterGreeting({
@@ -650,6 +717,7 @@ function Scene({
       <group position={[1.6, STAGE_TOP_Y, 0]} rotation={[0, -TURN_ANGLE, 0]}>
         <Podium position={[0, 0, 0.8]} accentColor={LW_OFF_WHITE} width={1.8} />
         {!isIdle && <PixelCharacter type="presenter" position={[0, 0.05, 0]} />}
+        <PresenterPodiumScreen active={screenActive} />
         <PresenterGreeting text={greetingText} visible={showGreeting} />
       </group>
     </>
@@ -719,8 +787,6 @@ const INTERVIEW_STEPS: InterviewStep[] = [
     isOutro: true,
   },
 ];
-
-const QUESTION_COUNT = 3;
 
 const PROJECT_TYPES = [
   "Website",
@@ -1136,14 +1202,11 @@ export default function GameshowExperience() {
     const trimmed = nameInput.trim();
     if (!trimmed) return;
     setPlayerName(trimmed);
-    setPhase("toPlayer");
-    setTimeout(() => setPhase("toPresenter"), 2000);
-    setTimeout(() => setPhase("zoomIn"), 4200);
+    setPhase("questionPlayer");
     setTimeout(() => {
-      setPhase("questionPlayer");
       setInterviewStep(0);
       setPresenterFullText(INTERVIEW_STEPS[0].getPresenterText(trimmed));
-    }, 5800);
+    }, 900);
   }, [nameInput]);
 
   const handleKeyDown = useCallback(
@@ -1160,8 +1223,6 @@ export default function GameshowExperience() {
   );
 
   const currentStep = INTERVIEW_STEPS[interviewStep];
-  const questionNumber =
-    interviewStep >= 1 && interviewStep <= QUESTION_COUNT ? interviewStep : 0;
   const isQuestionPhase = phase === "questionPlayer" || phase === "wheelZoom";
   const showPresenter = isQuestionPhase && interviewStep >= 0 && !isComplete;
   // Name chip: only during camera travel (not question or idle)
@@ -1271,25 +1332,9 @@ export default function GameshowExperience() {
           !currentStep.isMultipleChoice && (
             <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center p-4 pb-7">
               <div className="w-full max-w-lg space-y-3 border border-white/10 bg-black/85 p-5 backdrop-blur-md">
-                <div className="flex items-center justify-between">
-                  <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
-                    {currentStep.label}
-                  </span>
-                  <div className="flex gap-2">
-                    {Array.from({ length: QUESTION_COUNT }, (_, n) => (
-                      <div
-                        key={n}
-                        className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${
-                          n + 1 < questionNumber
-                            ? "bg-[#c8ff00]"
-                            : n + 1 === questionNumber
-                              ? "bg-[#c8ff00]/70 ring-1 ring-[#c8ff00]/50"
-                              : "bg-white/20"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
+                <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
+                  {currentStep.label}
+                </span>
                 <input
                   ref={answerInputRef}
                   type={currentStep.inputType ?? "text"}
@@ -1317,25 +1362,9 @@ export default function GameshowExperience() {
           currentStep?.isMultipleChoice && (
             <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center p-4 pb-7">
               <div className="w-full max-w-lg space-y-4 border border-white/10 bg-black/85 p-5 backdrop-blur-md">
-                <div className="flex items-center justify-between">
-                  <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
-                    {currentStep.label}
-                  </span>
-                  <div className="flex gap-2">
-                    {Array.from({ length: QUESTION_COUNT }, (_, n) => (
-                      <div
-                        key={n}
-                        className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${
-                          n + 1 < questionNumber
-                            ? "bg-[#c8ff00]"
-                            : n + 1 === questionNumber
-                              ? "bg-[#c8ff00]/70 ring-1 ring-[#c8ff00]/50"
-                              : "bg-white/20"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
+                <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
+                  {currentStep.label}
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   {PROJECT_TYPES.map((pt) => (
                     <button

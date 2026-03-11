@@ -59,3 +59,6 @@
     Voeg rechtsboven een afsluitknop toe. Bij klik op deze knop kom je op de screenshot van livewall-homepage.png. Voeg op de screenshot van livewall-homepage.png een contactbutton toe. Bij klik op deze button word je doorgestuurd naar het beginscherm van de gameshow.
 
     Bij het scherm van voltooid moet een verzendbutton komen en de mogelijkheid om iets aan te kunnen passen. Bij klik op verzenden komt er een pop-up en word je daarna doorgestuurd naar de screenshot van livewall-homepage.png.
+
+17. **Prompt 17**
+    Na het invoeren van de naam moet de camera direct gecentreerd inzoomen op de speler, de presentator en het scherm moeten in beeld zijn. Plaats op de voorkant van de presentator desk hetzelfde kleine scherm als bij de speler maar dan met "presentator". Verwijder de voortgang van de vragen in de invoervelden.
