@@ -65,3 +65,10 @@
 
 18. **Prompt 18**
     Maak één zachte mistige spotlight op de spreker met vage randen en een geleidelijke overgang van licht.
+
+19. **Prompt 19**
+    De ervaring moet voelen als een quiz met meerdere stappen waarin de presentator vragen stelt. Bij de vraag "wat voor project wil je start?" zijn er buzzer-knoppen als keuzes. Voeg een progress indicator toe die laat zien hoeveel stappen zijn voltooid. Aan het einde verschijnt een beloningscherm met de tekst: mission completed met daaronder de naam van de gebruiker en daarnaast het formulier waarin de gebruik zijn/haar gegevens kan bewerken en versturen. Verwijder de pop-up. Bij klik op verzenden wordt je doorgestuurd naar livewall-homepage.png.
+
+    Het tekstblok van degene die aan het woord is moet duidelijker in beeld blijven. Maak het tekstblok kleiner en plaats het gecentreerd boven degene die aan het woord is.
+
+    Verwijder de vraag op het scherm en vervang deze door het LiveWall-logo. Laat alleen na het draaien van het rad het gekozen budget op het scherm zien.

@@ -30,13 +30,11 @@ function TVScreenLogo() {
 
 function TVScreen({
   active,
-  questionText,
+  budgetText,
 }: {
   active: boolean;
-  questionText?: string;
+  budgetText?: string;
 }) {
-  const showLogo = !questionText;
-
   return (
     <group position={[-0.5, 3.3, -2.55]}>
       {/* Slim mounting plate */}
@@ -49,36 +47,42 @@ function TVScreen({
         />
       </mesh>
 
-      {/* Logo — shown when no question is displayed */}
-      {showLogo && (
+      {/* Logo — always shown unless budget result overrides */}
+      {!budgetText && (
         <Suspense fallback={null}>
           <TVScreenLogo />
         </Suspense>
       )}
 
-      {/* Question text on screen */}
-      {active && questionText && (
-        <Text
-          position={[0, 0, 0.072]}
-          fontSize={0.17}
-          color={LW_LIME}
-          anchorX="center"
-          anchorY="middle"
-          maxWidth={4.0}
-          lineHeight={1.3}
-          font={undefined}
-        >
-          {questionText}
-        </Text>
-      )}
-      {/* Glow when active */}
-      {active && questionText && (
-        <pointLight
-          position={[0, -0.7, 0.3]}
-          intensity={0.5}
-          color={LW_LIME}
-          distance={4.5}
-        />
+      {/* Budget result — only shown after wheel spin */}
+      {active && budgetText && (
+        <>
+          <Text
+            position={[0, 0.35, 0.072]}
+            fontSize={0.11}
+            color={LW_LIME}
+            anchorX="center"
+            anchorY="middle"
+            letterSpacing={0.2}
+          >
+            BUDGET
+          </Text>
+          <Text
+            position={[0, -0.1, 0.072]}
+            fontSize={0.32}
+            color="#ffffff"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {budgetText}
+          </Text>
+          <pointLight
+            position={[0, -0.2, 0.3]}
+            intensity={0.6}
+            color={LW_LIME}
+            distance={4.5}
+          />
+        </>
       )}
     </group>
   );
@@ -247,49 +251,48 @@ function PresenterGreeting({
 }) {
   if (!visible) return null;
   return (
-    <Html position={[1.6, 2.0, 0]} center style={{ pointerEvents: "none" }}>
+    <Html position={[0.3, 2.6, 1.5]} center style={{ pointerEvents: "none" }}>
       <div
         style={{
-          background: "rgba(5,5,10,0.92)",
-          border: "1.5px solid #c8ff00",
-          borderRadius: "4px",
-          padding: "10px 16px",
+          background: "rgba(4,4,10,0.94)",
+          border: "1px solid #c8ff00",
+          borderRadius: "3px",
+          padding: "7px 12px",
           color: "white",
-          fontSize: "15px",
+          fontSize: "12px",
           fontWeight: 600,
-          whiteSpace: "nowrap",
-          minWidth: "180px",
+          width: "200px",
           textAlign: "center",
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 0 20px rgba(200,255,0,0.2)",
+          backdropFilter: "blur(8px)",
+          boxShadow: "0 0 16px rgba(200,255,0,0.18)",
           position: "relative",
+          lineHeight: 1.45,
         }}
       >
         <span
           style={{
             color: "#c8ff00",
-            fontSize: "8px",
-            letterSpacing: "3px",
+            fontSize: "7px",
+            letterSpacing: "2.5px",
             display: "block",
-            marginBottom: "5px",
-            opacity: 0.8,
+            marginBottom: "4px",
+            opacity: 0.75,
           }}
         >
           PRESENTATOR
         </span>
         {text}
-        <span style={{ color: "#c8ff00" }}>|</span>
-        {/* Tail pointing down-left toward presenter */}
         <div
           style={{
             position: "absolute",
-            bottom: "-10px",
-            left: "20px",
+            bottom: "-8px",
+            left: "50%",
+            transform: "translateX(-50%)",
             width: 0,
             height: 0,
-            borderLeft: "8px solid transparent",
-            borderRight: "8px solid transparent",
-            borderTop: "10px solid #c8ff00",
+            borderLeft: "6px solid transparent",
+            borderRight: "6px solid transparent",
+            borderTop: "8px solid #c8ff00",
           }}
         />
       </div>
@@ -308,48 +311,48 @@ function PlayerReplyBubble({
 }) {
   if (!visible || !text) return null;
   return (
-    <Html position={[-1.8, 2.0, 0]} center style={{ pointerEvents: "none" }}>
+    <Html position={[0, 2.5, 0.5]} center style={{ pointerEvents: "none" }}>
       <div
         style={{
-          background: "rgba(5,5,10,0.92)",
-          border: "1.5px solid #c8ff00",
-          borderRadius: "4px",
-          padding: "8px 14px",
+          background: "rgba(4,4,10,0.94)",
+          border: "1px solid #c8ff00",
+          borderRadius: "3px",
+          padding: "7px 12px",
           color: "white",
-          fontSize: "13px",
+          fontSize: "12px",
           fontWeight: 600,
-          whiteSpace: "nowrap",
-          minWidth: "160px",
+          maxWidth: "180px",
           textAlign: "center",
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 0 18px rgba(200,255,0,0.2)",
+          backdropFilter: "blur(8px)",
+          boxShadow: "0 0 16px rgba(200,255,0,0.18)",
           position: "relative",
+          lineHeight: 1.45,
         }}
       >
         <span
           style={{
             color: "#c8ff00",
-            fontSize: "8px",
-            letterSpacing: "3px",
+            fontSize: "7px",
+            letterSpacing: "2.5px",
             display: "block",
-            marginBottom: "5px",
-            opacity: 0.8,
+            marginBottom: "4px",
+            opacity: 0.75,
           }}
         >
           SPELER
         </span>
         {text}
-        {/* Tail pointing up-right toward player */}
         <div
           style={{
             position: "absolute",
-            bottom: "-10px",
-            right: "26px",
+            bottom: "-8px",
+            left: "50%",
+            transform: "translateX(-50%)",
             width: 0,
             height: 0,
-            borderLeft: "8px solid transparent",
-            borderRight: "8px solid transparent",
-            borderTop: "10px solid #c8ff00",
+            borderLeft: "6px solid transparent",
+            borderRight: "6px solid transparent",
+            borderTop: "8px solid #c8ff00",
           }}
         />
       </div>
@@ -725,7 +728,7 @@ function Scene({
       <StudioFloor />
       <Backdrop />
       <RoundStage active={!isIdle} />
-      <TVScreen active={screenActive} questionText={screenText || undefined} />
+      <TVScreen active={screenActive} budgetText={screenText || undefined} />
       <Audience />
       {showWheel && wheelBudgets.length > 0 && (
         <BudgetWheel
@@ -1079,7 +1082,6 @@ export default function GameshowExperience() {
 
   // ── Homepage / send state ──
   const [showHomepage, setShowHomepage] = useState(false);
-  const [showSendPopup, setShowSendPopup] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -1131,10 +1133,6 @@ export default function GameshowExperience() {
       return () => clearTimeout(t);
     }
 
-    if (step.showOnScreen) {
-      setScreenText(step.getPresenterText(playerName));
-    }
-
     if (!step.hasInput) {
       const nextIdx = interviewStep + 1;
       const nextStep = INTERVIEW_STEPS[nextIdx];
@@ -1157,7 +1155,7 @@ export default function GameshowExperience() {
       setWheelCanSpin(false);
       setWheelResult(result);
       setAnswers((prev) => ({ ...prev, budget: result }));
-      setScreenText(`BUDGET: ${result}`);
+      setScreenText(result);
       // After result: first move camera to TV screen, then advance to outro
       const outroIdx = INTERVIEW_STEPS.findIndex((s) => s.isOutro);
       // Short pause on the wheel result overlay
@@ -1230,12 +1228,6 @@ export default function GameshowExperience() {
     setEditValue("");
     setPlayerReplyText("");
     setShowPlayerReply(false);
-  }, []);
-
-  // ── Send confirmation → go to homepage ──
-  const handleSendConfirm = useCallback(() => {
-    setShowSendPopup(false);
-    setShowHomepage(true);
   }, []);
 
   // ── Start ──
@@ -1371,6 +1363,60 @@ export default function GameshowExperience() {
           </div>
         )}
 
+        {/* ── Progress indicator ── */}
+        {(phase === "questionPlayer" || phase === "wheelZoom") &&
+          interviewStep > 0 &&
+          !isComplete && (
+            <div className="pointer-events-none absolute top-16 left-1/2 -translate-x-1/2 z-10">
+              <div className="flex items-center gap-1">
+                {[
+                  { label: "E-MAIL", si: 1 },
+                  { label: "BEDRIJF", si: 2 },
+                  { label: "PROJECT", si: 3 },
+                  { label: "BUDGET", si: 4 },
+                ].map(({ label, si }, i) => {
+                  const done =
+                    si < interviewStep || (si === 4 && !!wheelResult);
+                  const active =
+                    interviewStep === si || (si === 4 && phase === "wheelZoom");
+                  return (
+                    <div key={si} className="flex items-center gap-1">
+                      <div className="flex flex-col items-center gap-1">
+                        <div
+                          className={`flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold transition-all ${
+                            done
+                              ? "border-[#c8ff00] bg-[#c8ff00] text-black"
+                              : active
+                                ? "border-[#c8ff00] bg-[#c8ff00]/20 text-[#c8ff00]"
+                                : "border-white/20 bg-white/5 text-white/30"
+                          }`}
+                        >
+                          {done ? "✓" : si}
+                        </div>
+                        <span
+                          className={`font-pixel text-[6px] tracking-widest ${
+                            active
+                              ? "text-[#c8ff00]"
+                              : done
+                                ? "text-white/50"
+                                : "text-white/20"
+                          }`}
+                        >
+                          {label}
+                        </span>
+                      </div>
+                      {i < 3 && (
+                        <div
+                          className={`mb-4 h-px w-8 ${done ? "bg-[#c8ff00]/50" : "bg-white/15"}`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
         {/* ── Q&A text input panel ── */}
         {phase === "questionPlayer" &&
           showInput &&
@@ -1402,26 +1448,43 @@ export default function GameshowExperience() {
             </div>
           )}
 
-        {/* ── Multiple choice: project type ── */}
+        {/* ── Buzzer buttons: project type ── */}
         {phase === "questionPlayer" &&
           showInput &&
           !isComplete &&
           currentStep?.isMultipleChoice && (
             <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center p-4 pb-7">
-              <div className="w-full max-w-lg space-y-4 border border-white/10 bg-black/85 p-5 backdrop-blur-md">
+              <div className="w-full max-w-2xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
                 <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
                   {currentStep.label}
                 </span>
-                <div className="grid grid-cols-3 gap-2">
-                  {PROJECT_TYPES.map((pt) => (
-                    <button
-                      key={pt}
-                      onClick={() => submitAnswer(pt)}
-                      className="font-pixel border border-white/20 bg-white/5 py-3 text-[10px] tracking-[0.15em] text-white/80 transition-all hover:border-[#c8ff00] hover:bg-[#c8ff00]/15 hover:text-[#c8ff00] active:scale-95"
-                    >
-                      {pt}
-                    </button>
-                  ))}
+                <div className="grid grid-cols-3 gap-4 sm:grid-cols-6">
+                  {PROJECT_TYPES.map((pt, idx) => {
+                    const buzzerColors = [
+                      "#e63946",
+                      "#f4a261",
+                      "#2a9d8f",
+                      "#457b9d",
+                      "#9b5de5",
+                      "#c8ff00",
+                    ];
+                    const color = buzzerColors[idx];
+                    return (
+                      <button
+                        key={pt}
+                        onClick={() => submitAnswer(pt)}
+                        className="group flex flex-col items-center gap-2 transition-all"
+                      >
+                        <div
+                          className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-black/40 shadow-[0_6px_0px_rgba(0,0,0,0.45)] transition-all group-hover:brightness-110 group-active:translate-y-[3px] group-active:shadow-[0_2px_0px_rgba(0,0,0,0.45)]"
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className="font-pixel text-[9px] tracking-widest text-white/70 transition-all group-hover:text-white">
+                          {pt.toUpperCase()}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -1469,132 +1532,183 @@ export default function GameshowExperience() {
           </div>
         )}
 
-        {/* ── Complete screen ── */}
+        {/* ── Complete / reward screen ── */}
         {isComplete && (
-          <div className="pointer-events-auto absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/75 backdrop-blur-sm overflow-y-auto py-8">
-            <div className="text-center">
-              <p className="font-pixel mb-3 text-[9px] tracking-[0.35em] text-[#c8ff00]">
-                VOLTOOID
-              </p>
-              <h2 className="font-pixel text-3xl text-white">
-                Bedankt, {playerName}!
-              </h2>
-              <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-white/55">
-                Controleer je antwoorden en klik op verzenden.
-              </p>
-            </div>
-            <div className="w-full max-w-sm border border-white/10 px-6 py-4">
-              {(
-                [
-                  { key: "email", label: "E-mail", inputType: "email" },
-                  { key: "company", label: "Bedrijf", inputType: "text" },
-                  { key: "projectType", label: "Project", inputType: "choice" },
-                  { key: "budget", label: "Budget", inputType: "readonly" },
-                ] as { key: string; label: string; inputType: string }[]
-              ).map(({ key, label, inputType }) =>
-                answers[key] ? (
-                  <div
-                    key={key}
-                    className="border-b border-white/10 py-3 last:border-0"
-                  >
-                    {editingKey === key ? (
-                      <div className="space-y-2">
-                        <span className="font-pixel text-[8px] tracking-widest text-[#c8ff00]/60">
-                          {label.toUpperCase()}
-                        </span>
-                        {inputType === "choice" ? (
-                          <div className="mt-1 grid grid-cols-3 gap-1.5">
-                            {PROJECT_TYPES.map((pt) => (
+          <div className="pointer-events-auto absolute inset-0 overflow-y-auto bg-black/88 backdrop-blur-sm">
+            <div className="flex min-h-full flex-col items-center justify-center px-4 py-10">
+              {/* Header */}
+              <div className="mb-8 text-center">
+                <svg
+                  width="44"
+                  height="44"
+                  viewBox="0 0 44 44"
+                  fill="none"
+                  className="mx-auto mb-4"
+                >
+                  <path
+                    d="M22 4L26.5 15H38.5L28.5 22.5L32.5 34L22 27L11.5 34L15.5 22.5L5.5 15H17.5L22 4Z"
+                    fill="#c8ff00"
+                    stroke="#c8ff00"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <p className="font-pixel text-[9px] tracking-[0.45em] text-[#c8ff00]">
+                  MISSION
+                </p>
+                <h2 className="font-pixel text-4xl text-white sm:text-5xl">
+                  COMPLETED
+                </h2>
+                <p className="mt-3 font-pixel text-sm tracking-[0.2em] text-white/60">
+                  {playerName.toUpperCase()}
+                </p>
+              </div>
+
+              {/* Two-column layout */}
+              <div className="flex w-full max-w-2xl flex-col gap-5 sm:flex-row">
+                {/* Left: mission summary */}
+                <div className="flex flex-col justify-center gap-4 border border-[#c8ff00]/20 bg-[#c8ff00]/5 p-6 sm:w-56">
+                  <div>
+                    <p className="font-pixel text-[7px] tracking-[0.3em] text-[#c8ff00]/60">
+                      BUDGET
+                    </p>
+                    <p className="mt-1 font-pixel text-xl text-[#c8ff00]">
+                      {answers.budget ?? "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-pixel text-[7px] tracking-[0.3em] text-[#c8ff00]/60">
+                      PROJECT
+                    </p>
+                    <p className="mt-1 text-sm text-white/80">
+                      {answers.projectType ?? "—"}
+                    </p>
+                  </div>
+                  <div className="mt-2 border-t border-white/10 pt-4">
+                    <p className="text-xs leading-5 text-white/40">
+                      Je gegevens worden gebruikt om contact op te nemen.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right: editable form */}
+                <div className="flex-1 border border-white/10 bg-black/40 p-6">
+                  <p className="font-pixel mb-4 text-[8px] tracking-[0.25em] text-white/50">
+                    JOUW GEGEVENS
+                  </p>
+                  {(
+                    [
+                      { key: "email", label: "E-MAIL", inputType: "email" },
+                      { key: "company", label: "BEDRIJF", inputType: "text" },
+                      {
+                        key: "projectType",
+                        label: "PROJECT",
+                        inputType: "choice",
+                      },
+                    ] as { key: string; label: string; inputType: string }[]
+                  ).map(({ key, label, inputType }) => (
+                    <div
+                      key={key}
+                      className="border-b border-white/8 py-3 last:border-0"
+                    >
+                      {editingKey === key ? (
+                        <div className="space-y-2">
+                          <span className="font-pixel text-[7px] tracking-widest text-[#c8ff00]/60">
+                            {label}
+                          </span>
+                          {inputType === "choice" ? (
+                            <div className="mt-1 grid grid-cols-3 gap-1.5">
+                              {PROJECT_TYPES.map((pt) => (
+                                <button
+                                  key={pt}
+                                  onClick={() => {
+                                    setAnswers((prev) => ({
+                                      ...prev,
+                                      [key]: pt,
+                                    }));
+                                    setEditingKey(null);
+                                  }}
+                                  className={`font-pixel border py-1.5 text-[8px] tracking-widest transition-all ${
+                                    answers[key] === pt
+                                      ? "border-[#c8ff00] bg-[#c8ff00]/20 text-[#c8ff00]"
+                                      : "border-white/20 bg-white/5 text-white/60 hover:border-[#c8ff00]/60 hover:text-[#c8ff00]"
+                                  }`}
+                                >
+                                  {pt}
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="mt-1 flex gap-2">
+                              <input
+                                type={inputType}
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && editValue.trim()) {
+                                    setAnswers((prev) => ({
+                                      ...prev,
+                                      [key]: editValue.trim(),
+                                    }));
+                                    setEditingKey(null);
+                                  }
+                                  if (e.key === "Escape") setEditingKey(null);
+                                }}
+                                autoFocus
+                                className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-3 py-1.5 text-sm text-white outline-none focus:border-[#c8ff00]/70"
+                              />
                               <button
-                                key={pt}
                                 onClick={() => {
-                                  setAnswers((prev) => ({
-                                    ...prev,
-                                    [key]: pt,
-                                  }));
+                                  if (editValue.trim()) {
+                                    setAnswers((prev) => ({
+                                      ...prev,
+                                      [key]: editValue.trim(),
+                                    }));
+                                  }
                                   setEditingKey(null);
                                 }}
-                                className={`font-pixel border py-2 text-[9px] tracking-widest transition-all ${
-                                  answers[key] === pt
-                                    ? "border-[#c8ff00] bg-[#c8ff00]/20 text-[#c8ff00]"
-                                    : "border-white/20 bg-white/5 text-white/70 hover:border-[#c8ff00]/60 hover:text-[#c8ff00]"
-                                }`}
+                                className="border border-[#c8ff00]/40 bg-[#c8ff00]/10 px-3 py-1.5 text-[#c8ff00] transition-all hover:bg-[#c8ff00] hover:text-black"
                               >
-                                {pt}
+                                ✓
                               </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="mt-1 flex gap-2">
-                            <input
-                              type={inputType}
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" && editValue.trim()) {
-                                  setAnswers((prev) => ({
-                                    ...prev,
-                                    [key]: editValue.trim(),
-                                  }));
-                                  setEditingKey(null);
-                                }
-                                if (e.key === "Escape") setEditingKey(null);
-                              }}
-                              autoFocus
-                              className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-3 py-1.5 text-sm text-white outline-none focus:border-[#c8ff00]/70"
-                            />
-                            <button
-                              onClick={() => {
-                                if (editValue.trim()) {
-                                  setAnswers((prev) => ({
-                                    ...prev,
-                                    [key]: editValue.trim(),
-                                  }));
-                                }
-                                setEditingKey(null);
-                              }}
-                              className="border border-[#c8ff00]/40 bg-[#c8ff00]/10 px-3 py-1.5 text-[#c8ff00] transition-all hover:bg-[#c8ff00] hover:text-black"
-                            >
-                              ✓
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <span className="font-pixel text-[8px] tracking-widest text-[#c8ff00]/60">
-                          {label.toUpperCase()}
-                        </span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm text-white/75">
-                            {answers[key]}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="font-pixel text-[7px] tracking-widest text-[#c8ff00]/50">
+                            {label}
                           </span>
-                          {inputType !== "readonly" && (
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-white/75">
+                              {answers[key] ?? "—"}
+                            </span>
                             <button
                               onClick={() => {
                                 setEditingKey(key);
                                 setEditValue(answers[key] ?? "");
                               }}
-                              className="font-pixel text-[10px] text-white/30 transition-all hover:text-[#c8ff00]"
+                              className="text-[11px] text-white/25 transition-all hover:text-[#c8ff00]"
                               title="Aanpassen"
                             >
                               ✎
                             </button>
-                          )}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ) : null,
-              )}
+                      )}
+                    </div>
+                  ))}
+
+                  <button
+                    onClick={() => setShowHomepage(true)}
+                    disabled={!!editingKey}
+                    className="font-pixel mt-5 w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-3.5 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    VERZENDEN →
+                  </button>
+                </div>
+              </div>
             </div>
-            <button
-              onClick={() => setShowSendPopup(true)}
-              disabled={!!editingKey}
-              className="font-pixel w-full max-w-sm border-2 border-[#c8ff00] bg-[#c8ff00] py-4 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              VERZENDEN →
-            </button>
           </div>
         )}
       </div>
@@ -1640,42 +1754,6 @@ export default function GameshowExperience() {
               className="font-pixel border-2 border-[#c8ff00] bg-[#c8ff00] px-10 py-4 text-sm text-black shadow-[0_0_30px_rgba(200,255,0,0.4)] transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
             >
               NEEM CONTACT OP →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Send confirmation popup ── */}
-      {showSendPopup && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-sm border border-white/15 bg-[#05050e] px-8 py-10 text-center shadow-[0_0_60px_rgba(0,0,0,0.8)]">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center border-2 border-[#c8ff00] bg-[#c8ff00]/10">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#c8ff00"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </div>
-            <p className="font-pixel mb-2 text-[9px] tracking-[0.3em] text-[#c8ff00]">
-              VERZONDEN!
-            </p>
-            <h3 className="font-pixel mb-3 text-xl text-white">Bedankt!</h3>
-            <p className="mx-auto mb-8 max-w-xs text-sm leading-6 text-white/55">
-              Je aanvraag is succesvol verstuurd. We nemen zo snel mogelijk
-              contact met je op.
-            </p>
-            <button
-              onClick={handleSendConfirm}
-              className="font-pixel w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-4 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
-            >
-              OK →
             </button>
           </div>
         </div>
