@@ -116,7 +116,7 @@ function SideSection({
           key={`step-${i}`}
           receiveShadow
           rotation={[-Math.PI / 2, 0, 0]}
-          position={[sign * row.dist, row.y - 0.01, Z_CENTER]}
+          position={[sign * row.dist, row.y - 0, Z_CENTER]}
         >
           <planeGeometry args={[1.2, Z_SPAN + 1.0]} />
           <meshStandardMaterial color="#0a0a0a" roughness={0.7} />
@@ -140,7 +140,7 @@ function SideSection({
           key={`edge-${i}`}
           position={[innerEdgeX(row), row.y + 0.01, Z_CENTER]}
         >
-          <boxGeometry args={[0.05, 0.03, Z_SPAN + 1.0]} />
+          <boxGeometry args={[0.07, 0.03, Z_SPAN + 1.0]} />
           <meshStandardMaterial
             color="#c8ff00"
             emissive="#c8ff00"

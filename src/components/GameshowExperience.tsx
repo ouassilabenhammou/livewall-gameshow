@@ -992,6 +992,12 @@ export default function GameshowExperience() {
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelResult, setWheelResult] = useState("");
 
+  // ── Homepage / send state ──
+  const [showHomepage, setShowHomepage] = useState(false);
+  const [showSendPopup, setShowSendPopup] = useState(false);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+
   const nameInputRef = useRef<HTMLInputElement>(null);
   const answerInputRef = useRef<HTMLInputElement>(null);
 
@@ -1100,6 +1106,34 @@ export default function GameshowExperience() {
     () => submitAnswer(currentInput.trim()),
     [currentInput, submitAnswer],
   );
+
+  // ── Reset all state (used when going back to gameshow from homepage) ──
+  const handleReset = useCallback(() => {
+    setShowHomepage(false);
+    setPhase("idle");
+    setPlayerName("");
+    setNameInput("");
+    setInterviewStep(-1);
+    setPresenterFullText("");
+    setPresenterTypedText("");
+    setTypingDone(false);
+    setShowInput(false);
+    setCurrentInput("");
+    setAnswers({});
+    setIsComplete(false);
+    setScreenText("");
+    setWheelBudgets([]);
+    setWheelSpinning(false);
+    setWheelResult("");
+    setEditingKey(null);
+    setEditValue("");
+  }, []);
+
+  // ── Send confirmation → go to homepage ──
+  const handleSendConfirm = useCallback(() => {
+    setShowSendPopup(false);
+    setShowHomepage(true);
+  }, []);
 
   // ── Start ──
   const handleStart = useCallback(() => {
@@ -1344,7 +1378,7 @@ export default function GameshowExperience() {
 
         {/* ── Complete screen ── */}
         {isComplete && (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-7 bg-black/75 backdrop-blur-sm">
+          <div className="pointer-events-auto absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/75 backdrop-blur-sm overflow-y-auto py-8">
             <div className="text-center">
               <p className="font-pixel mb-3 text-[9px] tracking-[0.35em] text-[#c8ff00]">
                 VOLTOOID
@@ -1353,36 +1387,202 @@ export default function GameshowExperience() {
                 Bedankt, {playerName}!
               </h2>
               <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-white/55">
-                Je antwoorden zijn ontvangen. We nemen snel contact met je op.
+                Controleer je antwoorden en klik op verzenden.
               </p>
             </div>
             <div className="w-full max-w-sm border border-white/10 px-6 py-4">
               {(
                 [
-                  { key: "email", label: "E-mail" },
-                  { key: "company", label: "Bedrijf" },
-                  { key: "projectType", label: "Project" },
-                  { key: "budget", label: "Budget" },
-                ] as { key: string; label: string }[]
-              ).map(({ key, label }) =>
+                  { key: "email", label: "E-mail", inputType: "email" },
+                  { key: "company", label: "Bedrijf", inputType: "text" },
+                  { key: "projectType", label: "Project", inputType: "choice" },
+                  { key: "budget", label: "Budget", inputType: "readonly" },
+                ] as { key: string; label: string; inputType: string }[]
+              ).map(({ key, label, inputType }) =>
                 answers[key] ? (
                   <div
                     key={key}
-                    className="flex items-baseline justify-between border-b border-white/10 py-2.5 last:border-0"
+                    className="border-b border-white/10 py-3 last:border-0"
                   >
-                    <span className="font-pixel text-[8px] tracking-widest text-[#c8ff00]/60">
-                      {label.toUpperCase()}
-                    </span>
-                    <span className="text-sm text-white/75">
-                      {answers[key]}
-                    </span>
+                    {editingKey === key ? (
+                      <div className="space-y-2">
+                        <span className="font-pixel text-[8px] tracking-widest text-[#c8ff00]/60">
+                          {label.toUpperCase()}
+                        </span>
+                        {inputType === "choice" ? (
+                          <div className="mt-1 grid grid-cols-3 gap-1.5">
+                            {PROJECT_TYPES.map((pt) => (
+                              <button
+                                key={pt}
+                                onClick={() => {
+                                  setAnswers((prev) => ({
+                                    ...prev,
+                                    [key]: pt,
+                                  }));
+                                  setEditingKey(null);
+                                }}
+                                className={`font-pixel border py-2 text-[9px] tracking-widest transition-all ${
+                                  answers[key] === pt
+                                    ? "border-[#c8ff00] bg-[#c8ff00]/20 text-[#c8ff00]"
+                                    : "border-white/20 bg-white/5 text-white/70 hover:border-[#c8ff00]/60 hover:text-[#c8ff00]"
+                                }`}
+                              >
+                                {pt}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="mt-1 flex gap-2">
+                            <input
+                              type={inputType}
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && editValue.trim()) {
+                                  setAnswers((prev) => ({
+                                    ...prev,
+                                    [key]: editValue.trim(),
+                                  }));
+                                  setEditingKey(null);
+                                }
+                                if (e.key === "Escape") setEditingKey(null);
+                              }}
+                              autoFocus
+                              className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-3 py-1.5 text-sm text-white outline-none focus:border-[#c8ff00]/70"
+                            />
+                            <button
+                              onClick={() => {
+                                if (editValue.trim()) {
+                                  setAnswers((prev) => ({
+                                    ...prev,
+                                    [key]: editValue.trim(),
+                                  }));
+                                }
+                                setEditingKey(null);
+                              }}
+                              className="border border-[#c8ff00]/40 bg-[#c8ff00]/10 px-3 py-1.5 text-[#c8ff00] transition-all hover:bg-[#c8ff00] hover:text-black"
+                            >
+                              ✓
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="font-pixel text-[8px] tracking-widest text-[#c8ff00]/60">
+                          {label.toUpperCase()}
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-white/75">
+                            {answers[key]}
+                          </span>
+                          {inputType !== "readonly" && (
+                            <button
+                              onClick={() => {
+                                setEditingKey(key);
+                                setEditValue(answers[key] ?? "");
+                              }}
+                              className="font-pixel text-[10px] text-white/30 transition-all hover:text-[#c8ff00]"
+                              title="Aanpassen"
+                            >
+                              ✎
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : null,
               )}
             </div>
+            <button
+              onClick={() => setShowSendPopup(true)}
+              disabled={!!editingKey}
+              className="font-pixel w-full max-w-sm border-2 border-[#c8ff00] bg-[#c8ff00] py-4 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              VERZENDEN →
+            </button>
           </div>
         )}
       </div>
+
+      {/* ── Close button (top-right) ── */}
+      {!showHomepage && (
+        <button
+          onClick={() => setShowHomepage(true)}
+          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center border border-white/20 bg-black/60 text-white/60 backdrop-blur-sm transition-all hover:border-white/50 hover:text-white active:scale-95"
+          title="Sluiten"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <line x1="1" y1="1" x2="13" y2="13" />
+            <line x1="13" y1="1" x2="1" y2="13" />
+          </svg>
+        </button>
+      )}
+
+      {/* ── Livewall homepage screenshot overlay ── */}
+      {showHomepage && (
+        <div className="absolute inset-0 z-40 flex flex-col">
+          <img
+            src="/livewall-homepage.png"
+            alt="Livewall Homepage"
+            className="h-full w-full object-cover object-top"
+          />
+          {/* Contact button overlay */}
+          <div className="absolute inset-0 flex items-end justify-center pb-16">
+            <button
+              onClick={handleReset}
+              className="font-pixel border-2 border-[#c8ff00] bg-[#c8ff00] px-10 py-4 text-sm text-black shadow-[0_0_30px_rgba(200,255,0,0.4)] transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
+            >
+              NEEM CONTACT OP →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Send confirmation popup ── */}
+      {showSendPopup && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-sm border border-white/15 bg-[#05050e] px-8 py-10 text-center shadow-[0_0_60px_rgba(0,0,0,0.8)]">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center border-2 border-[#c8ff00] bg-[#c8ff00]/10">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#c8ff00"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <p className="font-pixel mb-2 text-[9px] tracking-[0.3em] text-[#c8ff00]">
+              VERZONDEN!
+            </p>
+            <h3 className="font-pixel mb-3 text-xl text-white">Bedankt!</h3>
+            <p className="mx-auto mb-8 max-w-xs text-sm leading-6 text-white/55">
+              Je aanvraag is succesvol verstuurd. We nemen zo snel mogelijk
+              contact met je op.
+            </p>
+            <button
+              onClick={handleSendConfirm}
+              className="font-pixel w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-4 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
+            >
+              OK →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

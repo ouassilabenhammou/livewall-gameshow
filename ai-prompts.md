@@ -54,3 +54,8 @@
 
 15. **Prompt 15**
     Voeg het logo van livewall toe op het tv scherm
+
+16. **Prompt 16**
+    Voeg rechtsboven een afsluitknop toe. Bij klik op deze knop kom je op de screenshot van livewall-homepage.png. Voeg op de screenshot van livewall-homepage.png een contactbutton toe. Bij klik op deze button word je doorgestuurd naar het beginscherm van de gameshow.
+
+    Bij het scherm van voltooid moet een verzendbutton komen en de mogelijkheid om iets aan te kunnen passen. Bij klik op verzenden komt er een pop-up en word je daarna doorgestuurd naar de screenshot van livewall-homepage.png.
