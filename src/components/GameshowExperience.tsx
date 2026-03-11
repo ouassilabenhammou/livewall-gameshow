@@ -1,22 +1,15 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
+import Image from "next/image";
 import { Text, Html, useTexture } from "@react-three/drei";
-import {
-  Suspense,
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-  useMemo,
-} from "react";
+import { Suspense, useState, useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import CameraRig, { type GamePhase } from "./CameraRig";
 import PixelCharacter from "./PixelCharacter";
 import Audience from "./Audience";
 
 // Kleuren
-const LW_BLACK = "#00000";
 const LW_OFF_WHITE = "#FAFDF9";
 const LW_LIME = "#D1FF00";
 
@@ -253,7 +246,7 @@ function PresenterGreeting({
 }) {
   if (!visible) return null;
   return (
-    <Html position={[0.4, 2.25, 0.6]} center style={{ pointerEvents: "none" }}>
+    <Html position={[1.6, 2.0, 0]} center style={{ pointerEvents: "none" }}>
       <div
         style={{
           background: "rgba(5,5,10,0.92)",
@@ -291,6 +284,66 @@ function PresenterGreeting({
             position: "absolute",
             bottom: "-10px",
             left: "20px",
+            width: 0,
+            height: 0,
+            borderLeft: "8px solid transparent",
+            borderRight: "8px solid transparent",
+            borderTop: "10px solid #c8ff00",
+          }}
+        />
+      </div>
+    </Html>
+  );
+}
+
+// ─── Player reply speech bubble ───────────────────────────────────────────────
+
+function PlayerReplyBubble({
+  text,
+  visible,
+}: {
+  text: string;
+  visible: boolean;
+}) {
+  if (!visible || !text) return null;
+  return (
+    <Html position={[-1.8, 2.0, 0]} center style={{ pointerEvents: "none" }}>
+      <div
+        style={{
+          background: "rgba(5,5,10,0.92)",
+          border: "1.5px solid #c8ff00",
+          borderRadius: "4px",
+          padding: "8px 14px",
+          color: "white",
+          fontSize: "13px",
+          fontWeight: 600,
+          whiteSpace: "nowrap",
+          minWidth: "160px",
+          textAlign: "center",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 0 18px rgba(200,255,0,0.2)",
+          position: "relative",
+        }}
+      >
+        <span
+          style={{
+            color: "#c8ff00",
+            fontSize: "8px",
+            letterSpacing: "3px",
+            display: "block",
+            marginBottom: "5px",
+            opacity: 0.8,
+          }}
+        >
+          SPELER
+        </span>
+        {text}
+        {/* Tail pointing up-right toward player */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "-10px",
+            right: "26px",
             width: 0,
             height: 0,
             borderLeft: "8px solid transparent",
@@ -500,164 +553,127 @@ function Backdrop() {
 
 // ─── Spotlight beams ─────────────────────────────────────────────────────────
 
-const BEAM_HEIGHT = 9.5;
-const BEAM_ORIGIN_Y = 9.0;
+type Speaker = "player" | "presenter" | null;
 
-function SpotlightBeams({ active }: { active: boolean }) {
-  const coreRefs = useRef<(THREE.Mesh | null)[]>([]);
-  const haloRefs = useRef<(THREE.Mesh | null)[]>([]);
+// ─── Single focused white spotlight on active speaker ─────────────────────────
 
-  const cones = useMemo(
-    () => [
-      { x: -5.0, targetX: -2.5, color: LW_LIME },
-      { x: 1.8, targetX: 1.2, color: "#ffffff" },
-      { x: -1.2, targetX: -0.4, color: LW_OFF_WHITE },
-      { x: 4.5, targetX: 1.5, color: LW_LIME },
-      { x: -6.5, targetX: -3.0, color: LW_OFF_WHITE },
-    ],
-    [],
+function SpeakerSpotlight({ speaker }: { speaker: Speaker }) {
+  const isActive = speaker === "player" || speaker === "presenter";
+
+  // Position above whichever character is aan het woord
+  const x = speaker === "player" ? -1.8 : 1.6;
+  // Licht boven de persoon, iets naar achteren zodat het niet over de desks valt
+  const lightPos: [number, number, number] = [x, 8.5, 2.4];
+  // Beam center tussen plafond en vloer, recht boven de persoon maar een fractie naar achteren
+  const beamPos: [number, number, number] = [x, 4.4, 0.5];
+  const poolPos: [number, number, number] = [x, STAGE_TOP_Y + 0.001, -0.1];
+
+  return (
+    <>
+      <spotLight
+        position={lightPos}
+        angle={0.4}
+        penumbra={0.85}
+        intensity={isActive ? 4.2 : 0.0}
+        color="#ffffff"
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        distance={32}
+        decay={1.1}
+      />
+      {/* Rechte lichtkolom van plafond tot vloer */}
+      <mesh position={beamPos} rotation={[Math.PI, 0, 0]} visible={isActive}>
+        {/* Cilinder: overal even breed */}
+        <cylinderGeometry args={[1.0, 1.0, 8.2, 30, 1, true]} />
+        <meshStandardMaterial
+          color="#ffffff"
+          emissive="#ffffff"
+          emissiveIntensity={0.38}
+          transparent
+          opacity={0.11}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+      {/* Bright pool of light on floor */}
+      <mesh position={poolPos} rotation={[-Math.PI / 2, 0, 0]} visible={isActive}>
+        <circleGeometry args={[0.95, 32]} />
+        <meshStandardMaterial
+          color="#ffffff"
+          emissive="#ffffff"
+          emissiveIntensity={0.75}
+          transparent
+          opacity={0.45}
+        />
+      </mesh>
+    </>
   );
+}
 
-  useFrame((state) => {
-    if (!active) return;
-    const t = state.clock.elapsedTime;
-    cones.forEach((cone, i) => {
-      const dx = cone.targetX - cone.x;
-      const baseAngle = Math.atan2(dx, BEAM_HEIGHT) * 0.8;
-      const swing = Math.sin(t * 0.5 + i * 1.25) * 0.14;
-      const finalAngle = -baseAngle + swing;
-      if (coreRefs.current[i]) coreRefs.current[i]!.rotation.z = finalAngle;
-      if (haloRefs.current[i]) haloRefs.current[i]!.rotation.z = finalAngle;
+// ─── Kleine bewegende achtergrondlampen ──────────────────────────────────────
+
+function BackgroundMovingLights({ active }: { active: boolean }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!active || !groupRef.current) return;
+    const t = clock.getElapsedTime();
+    groupRef.current.children.forEach((child, i) => {
+      const radius = 6.5 + i * 0.8;
+      const speed = 0.12 + i * 0.04;
+      const y = 6.0 + Math.sin(t * 0.5 + i) * 0.5;
+      const x = Math.cos(t * speed + i * 1.3) * radius;
+      const z = -4.0 + Math.sin(t * speed * 0.9 + i) * 1.8;
+      child.position.set(x, y, z);
     });
   });
 
   return (
-    <group>
-      {cones.map((cone, i) => {
-        const dx = cone.targetX - cone.x;
-        const angle = Math.atan2(dx, BEAM_HEIGHT) * 0.8;
-        const posX = cone.x + dx * 0.25;
-        const posY = BEAM_ORIGIN_Y;
-
-        return (
-          <group key={i}>
-            {/* Narrow core beam */}
-            <mesh
-              ref={(el) => {
-                coreRefs.current[i] = el;
-              }}
-              position={[posX, posY, 0.8]}
-              rotation={[0, 0, -angle]}
-            >
-              <coneGeometry args={[0.22, BEAM_HEIGHT, 8, 1, true]} />
-              <meshStandardMaterial
-                color={cone.color}
-                emissive={cone.color}
-                emissiveIntensity={active ? 0.28 : 0.04}
-                transparent
-                opacity={active ? 0.05 : 0.01}
-                side={THREE.DoubleSide}
-                depthWrite={false}
-                blending={THREE.AdditiveBlending}
-              />
-            </mesh>
-            {/* Wide soft halo — simulates blur */}
-            <mesh
-              ref={(el) => {
-                haloRefs.current[i] = el;
-              }}
-              position={[posX, posY, 0.8]}
-              rotation={[0, 0, -angle]}
-            >
-              <coneGeometry args={[1.1, BEAM_HEIGHT, 16, 1, true]} />
-              <meshStandardMaterial
-                color={cone.color}
-                emissive={cone.color}
-                emissiveIntensity={active ? 0.08 : 0.01}
-                transparent
-                opacity={active ? 0.018 : 0.004}
-                side={THREE.DoubleSide}
-                depthWrite={false}
-                blending={THREE.AdditiveBlending}
-              />
-            </mesh>
-          </group>
-        );
-      })}
+    <group ref={groupRef} visible={active}>
+      {[0, 1, 2, 3].map((i) => (
+        <group key={i}>
+          <mesh>
+            <sphereGeometry args={[0.16, 12, 12]} />
+            <meshStandardMaterial
+              color={LW_LIME}
+              emissive={LW_LIME}
+              emissiveIntensity={1.6}
+            />
+          </mesh>
+          <pointLight
+            intensity={2.0}
+            color={LW_LIME}
+            distance={18}
+            decay={1.3}
+          />
+        </group>
+      ))}
     </group>
   );
 }
 
 // ─── Lights ──────────────────────────────────────────────────────────────────
 
-function StudioLights() {
+function StudioLights({
+  speaker,
+  active,
+}: {
+  speaker: Speaker;
+  active: boolean;
+}) {
   return (
     <>
-      <ambientLight intensity={0.55} color="#f0f2ff" />
-      <directionalLight
-        position={[0, 8, 5]}
-        intensity={0.9}
-        color="#ffffff"
-        castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-      />
-      <spotLight
-        position={[2.5, 7.5, 4]}
-        angle={0.28}
-        penumbra={0.45}
-        intensity={6.0}
-        color="#fff8e8"
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-bias={-0.001}
-      />
-      <spotLight
-        position={[-4.5, 7, 4]}
-        angle={0.3}
-        penumbra={0.45}
-        intensity={5.5}
-        color="#f8ffe8"
-        castShadow
-      />
-      <spotLight
-        position={[-0.5, 5, 8]}
-        angle={0.55}
-        penumbra={1.0}
-        intensity={3.0}
-        color="#eef0ff"
-      />
-      <pointLight
-        position={[-0.5, 1.8, 5]}
-        intensity={1.2}
-        color="#e0e8ff"
-        distance={8}
-      />
-      <spotLight
-        position={[4.5, 5.5, -1.5]}
-        angle={0.3}
-        penumbra={0.6}
-        intensity={2.5}
-        color={LW_LIME}
-      />
-      <spotLight
-        position={[-6, 5.5, -1.5]}
-        angle={0.3}
-        penumbra={0.6}
-        intensity={2.0}
-        color={LW_LIME}
-      />
-      <spotLight
-        position={[0, 3.5, 3]}
-        angle={0.65}
-        penumbra={1.0}
-        intensity={2.0}
-        color="#dde8ff"
-      />
-      <pointLight position={[0, 6.5, -2.5]} intensity={1.0} color={LW_LIME} />
-      <pointLight position={[-7, 5, -2]} intensity={0.6} color={LW_OFF_WHITE} />
-      <pointLight position={[7, 5, -2]} intensity={0.6} color={LW_OFF_WHITE} />
+      {/* Soft overall base light */}
+      <ambientLight intensity={0.45} color="#f0f2ff" />
+      <directionalLight position={[0, 8, 5]} intensity={0.7} color="#ffffff" />
+
+      {/* Enkele grote spotlight vanaf het plafond op de actieve spreker */}
+      <SpeakerSpotlight speaker={speaker} />
+
+      {/* Kleine bewegende lampen in de achtergrond, pas na start */}
+      <BackgroundMovingLights active={active} />
     </>
   );
 }
@@ -669,33 +685,39 @@ function Scene({
   playerName,
   greetingText,
   showGreeting,
+  playerReplyText,
+  showPlayerReply,
   screenText,
   wheelBudgets,
   wheelSpinning,
   onWheelComplete,
+  speaker,
 }: {
   phase: GamePhase;
   playerName: string;
   greetingText: string;
   showGreeting: boolean;
+  playerReplyText: string;
+  showPlayerReply: boolean;
   screenText: string;
   wheelBudgets: string[];
   wheelSpinning: boolean;
   onWheelComplete: (result: string) => void;
+  speaker: Speaker;
 }) {
   const screenActive = phase !== "idle" && !!playerName;
   const isIdle = phase === "idle";
   const showWheel = phase === "wheelZoom" || wheelSpinning;
+  const lightsActive = !isIdle;
 
   return (
     <>
       <CameraRig phase={phase} />
-      <StudioLights />
+      <StudioLights speaker={speaker} active={lightsActive} />
       <StudioFloor />
       <Backdrop />
       <RoundStage active={!isIdle} />
       <TVScreen active={screenActive} questionText={screenText || undefined} />
-      <SpotlightBeams active={!isIdle} />
       <Audience />
       {showWheel && wheelBudgets.length > 0 && (
         <BudgetWheel
@@ -711,6 +733,7 @@ function Scene({
         <Podium position={[0, 0, 0.8]} accentColor={LW_LIME} width={1.4} />
         {!isIdle && <PixelCharacter type="player" position={[0, 0.05, 0]} />}
         <PodiumScreen playerName={playerName} active={screenActive} />
+        <PlayerReplyBubble text={playerReplyText} visible={showPlayerReply} />
       </group>
 
       {/* Presenter — on round stage, rotated toward player */}
@@ -748,7 +771,7 @@ const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     key: "email",
-    label: "VRAAG 1 / 3 — E-MAILADRES",
+    label: "E-MAILADRES",
     getPresenterText: () => "Wat is je e-mailadres?",
     placeholder: "naam@bedrijf.nl",
     inputType: "email",
@@ -757,7 +780,7 @@ const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     key: "company",
-    label: "VRAAG 2 / 3 — BEDRIJFSNAAM",
+    label: "BEDRIJFSNAAM",
     getPresenterText: () => "Wat is de naam van je bedrijf?",
     placeholder: "Bijv. Livewall BV",
     inputType: "text",
@@ -766,7 +789,7 @@ const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     key: "projectType",
-    label: "VRAAG 3 / 3 — TYPE PROJECT",
+    label: "TYPE PROJECT",
     getPresenterText: () => "Wat voor type project zoek je?",
     hasInput: true,
     isMultipleChoice: true,
@@ -1037,6 +1060,8 @@ export default function GameshowExperience() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isComplete, setIsComplete] = useState(false);
   const [screenText, setScreenText] = useState("");
+  const [playerReplyText, setPlayerReplyText] = useState("");
+  const [showPlayerReply, setShowPlayerReply] = useState(false);
 
   // ── Wheel state ──
   const [wheelBudgets, setWheelBudgets] = useState<string[]>([]);
@@ -1151,6 +1176,12 @@ export default function GameshowExperience() {
       const step = INTERVIEW_STEPS[interviewStep];
       if (!step) return;
       setAnswers((prev) => ({ ...prev, [step.key]: val }));
+       // Show player's answer briefly as a speech bubble
+      setPlayerReplyText(val);
+      setShowPlayerReply(true);
+      setTimeout(() => {
+        setShowPlayerReply(false);
+      }, 2600);
       setCurrentInput("");
       setShowInput(false);
       setScreenText("");
@@ -1189,6 +1220,8 @@ export default function GameshowExperience() {
     setWheelCanSpin(false);
     setEditingKey(null);
     setEditValue("");
+    setPlayerReplyText("");
+    setShowPlayerReply(false);
   }, []);
 
   // ── Send confirmation → go to homepage ──
@@ -1232,6 +1265,12 @@ export default function GameshowExperience() {
     phase !== "wheelZoom" &&
     playerName;
 
+  // Determine who is "aan het woord" for the spotlight:
+  // - during input we highlight the player
+  // - otherwise, when the game is running, we highlight the presenter
+  const speaker: Speaker =
+    phase === "idle" ? null : showInput ? "player" : "presenter";
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-black">
       <Canvas
@@ -1248,10 +1287,13 @@ export default function GameshowExperience() {
           playerName={playerName}
           greetingText={presenterTypedText}
           showGreeting={showPresenter}
+          playerReplyText={playerReplyText}
+          showPlayerReply={showPlayerReply}
           screenText={screenText}
           wheelBudgets={wheelBudgets}
           wheelSpinning={wheelSpinning}
           onWheelComplete={handleWheelComplete}
+          speaker={speaker}
         />
       </Canvas>
 
@@ -1276,9 +1318,6 @@ export default function GameshowExperience() {
           <div className="pointer-events-auto absolute inset-0 flex flex-col items-center justify-center gap-8">
             <div className="pointer-events-none absolute inset-0 bg-black/55 backdrop-blur-[2px]" />
             <div className="relative z-10 text-center">
-              <p className="font-pixel mb-4 text-[9px] tracking-[0.3em] text-[#c8ff00]">
-                EPISODE 01
-              </p>
               <h2 className="font-pixel text-2xl text-white sm:text-3xl">
                 READY?
               </h2>
@@ -1577,11 +1616,15 @@ export default function GameshowExperience() {
       {/* ── Livewall homepage screenshot overlay ── */}
       {showHomepage && (
         <div className="absolute inset-0 z-40 flex flex-col">
-          <img
-            src="/livewall-homepage.png"
-            alt="Livewall Homepage"
-            className="h-full w-full object-cover object-top"
-          />
+          <div className="relative h-full w-full">
+            <Image
+              src="/livewall-homepage.png"
+              alt="Livewall Homepage"
+              fill
+              className="object-cover object-top"
+              priority
+            />
+          </div>
           {/* Contact button overlay */}
           <div className="absolute inset-0 flex items-end justify-center pb-16">
             <button
