@@ -1022,7 +1022,7 @@ export default function GameshowExperience() {
   const [editError, setEditError] = useState("");
 
   // ── Homepage / send state ──
-  const [showHomepage, setShowHomepage] = useState(false);
+  const [showHomepage, setShowHomepage] = useState(true);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -1819,20 +1819,20 @@ export default function GameshowExperience() {
         <div className="absolute inset-0 z-40 flex flex-col">
           <div className="relative h-full w-full">
             <Image
-              src="/livewall-homepage.png"
+              src="/livewall-homepage-v2.png"
               alt="Livewall Homepage"
               fill
               className="object-cover object-top"
               priority
             />
           </div>
-          {/* Contact button overlay */}
-          <div className="absolute inset-0 flex items-end justify-center pb-16">
+          {/* Contact button overlay – Livewall-stijl, rechts in navbar */}
+          <div className="absolute inset-0 flex items-start justify-end pt-[2.5rem] pr-[4rem] md:pt-[2.75rem] md:pr-[4.5rem]">
             <button
               onClick={handleReset}
-              className="font-pixel border-2 border-[#c8ff00] bg-[#c8ff00] px-10 py-4 text-sm text-black shadow-[0_0_30px_rgba(200,255,0,0.4)] transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
+              className="font-pixel rounded-lg bg-[#c8ff00] px-5 py-2.5 text-sm font-medium tracking-wide text-black shadow-[0_0_20px_rgba(200,255,0,0.45)] transition-all duration-200 hover:bg-[#0a0a0a] hover:text-[#c8ff00] hover:shadow-[0_0_24px_rgba(200,255,0,0.5)] active:scale-95"
             >
-              NEEM CONTACT OP →
+              CONTACT
             </button>
           </div>
         </div>

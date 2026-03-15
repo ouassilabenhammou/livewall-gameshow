@@ -123,3 +123,11 @@ de tekst van de presentator "dan mikken we op. Daar kunnen we iets heel tofs mee
 **Prompt 31**
 
 de knop "draai het rad" die flashed en daarna laat hij hem pas goed zien, fix dit.
+
+**Prompt 32**
+
+maak de contact knop meer in de stijl van livewall en ook met hover functie en kleur. Knop moet bij livewall thema passen en goed zichtbaar zijn
+
+**Prompt 33**
+
+dit moet ook de eerste pagina zijn die de speler ziet.
