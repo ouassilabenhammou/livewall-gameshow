@@ -79,3 +79,15 @@ voeg overal error handling toe, vooral in de input velden en wanneer de speler e
 **Prompt 20**
 
 voeg nog error handling toe als een speler op het kruisje rechtsboven klikt tijdens de gameshow dat alles stopt en reset dus ook de textboxes enzo want die blijf je nu zien als de speler op kruisje klikt
+
+**Prompt 21**
+
+verwijder het bericht in het midden van het rad dat zegt iets van :het rad is aan het draaien". Verwijder ook de popup die erg snel opeens komt nadat het rad is gestopt met de gekozen budget erop. Alleen op de tv scherm komt het budget te staan, en laat de camera daar ook even staan voordat hij verder gaat naar het einde. Verwijder ook de naam label die opeens na het draaien van het rad onderaan zichtbaar is.
+
+**Prompt 22**
+
+na het draaien gaat hij naar het tv scherm maar dan opeens gaat hij terug naar het rad en dan opeens naar de outro fix dit.
+
+**Prompt 23**
+
+tijdens dat de camera op de tv scherm staat en wacht, laat de presentator iets zeggen of reageren op de budget, zodat de flow van de gameshow wel goed verloopt.
