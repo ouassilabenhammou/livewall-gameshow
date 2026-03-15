@@ -1771,7 +1771,12 @@ export default function GameshowExperience() {
       {/* ── Close button (top-right) ── */}
       {!showHomepage && (
         <button
-          onClick={() => setShowHomepage(true)}
+          onClick={() => {
+            // Volledige reset van de gameshow‑state zodat alle teksten,
+            // overlays, inputs en animaties stoppen, en daarna naar homepage.
+            handleReset();
+            setShowHomepage(true);
+          }}
           className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center border border-white/20 bg-black/60 text-white/60 backdrop-blur-sm transition-all hover:border-white/50 hover:text-white active:scale-95"
           title="Sluiten"
         >
