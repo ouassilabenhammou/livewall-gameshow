@@ -1035,6 +1035,12 @@ export default function GameshowExperience() {
   const [wheelResult, setWheelResult] = useState("");
   const [wheelCanSpin, setWheelCanSpin] = useState(false);
 
+  // ── Error state ──
+  const [nameError, setNameError] = useState("");
+  const [inputError, setInputError] = useState("");
+  const [wheelError, setWheelError] = useState("");
+  const [editError, setEditError] = useState("");
+
   // ── Homepage / send state ──
   const [showHomepage, setShowHomepage] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -1133,12 +1139,27 @@ export default function GameshowExperience() {
   // ── Submit text answer ──
   const submitAnswer = useCallback(
     (val: string) => {
-      if (!val) return;
+      const trimmed = val.trim();
       const step = INTERVIEW_STEPS[interviewStep];
       if (!step) return;
-      setAnswers((prev) => ({ ...prev, [step.key]: val }));
+
+      if (!trimmed) {
+        setInputError("Vul dit veld in om verder te gaan.");
+        return;
+      }
+
+      if (step.key === "email") {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(trimmed)) {
+          setInputError("Vul een geldig e-mailadres in (bijv. naam@bedrijf.nl).");
+          return;
+        }
+      }
+
+      setInputError("");
+      setAnswers((prev) => ({ ...prev, [step.key]: trimmed }));
       // Show player's answer briefly as a speech bubble
-      setPlayerReplyText(val);
+      setPlayerReplyText(trimmed);
       setShowPlayerReply(true);
       setTimeout(() => {
         setShowPlayerReply(false);
@@ -1156,7 +1177,7 @@ export default function GameshowExperience() {
   );
 
   const handleAnswerSubmit = useCallback(
-    () => submitAnswer(currentInput.trim()),
+    () => submitAnswer(currentInput),
     [currentInput, submitAnswer],
   );
 
@@ -1183,12 +1204,21 @@ export default function GameshowExperience() {
     setEditValue("");
     setPlayerReplyText("");
     setShowPlayerReply(false);
+    setNameError("");
+    setInputError("");
+    setWheelError("");
+    setEditError("");
   }, []);
 
   // ── Start ──
   const handleStart = useCallback(() => {
     const trimmed = nameInput.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      setNameError("Vul je naam in om te beginnen.");
+      nameInputRef.current?.focus();
+      return;
+    }
+    setNameError("");
     setPlayerName(trimmed);
     setPhase("questionPlayer");
     setTimeout(() => {
@@ -1289,12 +1319,18 @@ export default function GameshowExperience() {
                 ref={nameInputRef}
                 type="text"
                 value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
+                onChange={(e) => {
+                  setNameInput(e.target.value);
+                  if (nameError) setNameError("");
+                }}
                 onKeyDown={handleKeyDown}
                 placeholder="Typ hier je naam..."
                 autoFocus
                 className="w-full border border-white/20 bg-white/6 px-4 py-3 text-base text-white placeholder-white/25 outline-none transition-all focus:border-[#c8ff00]/80 focus:bg-white/10"
               />
+              {nameError && (
+                <p className="mt-1 text-xs text-red-400">{nameError}</p>
+              )}
               <button
                 onClick={handleStart}
                 disabled={!nameInput.trim()}
@@ -1387,11 +1423,17 @@ export default function GameshowExperience() {
                   ref={answerInputRef}
                   type={currentStep.inputType ?? "text"}
                   value={currentInput}
-                  onChange={(e) => setCurrentInput(e.target.value)}
+                  onChange={(e) => {
+                    setCurrentInput(e.target.value);
+                    if (inputError) setInputError("");
+                  }}
                   onKeyDown={handleAnswerKeyDown}
                   placeholder={currentStep.placeholder}
                   className="w-full border border-white/20 bg-white/6 px-4 py-3 text-base text-white placeholder-white/25 outline-none transition-all focus:border-[#c8ff00]/70 focus:bg-white/10"
                 />
+                {inputError && (
+                  <p className="text-xs text-red-400">{inputError}</p>
+                )}
                 <button
                   onClick={handleAnswerSubmit}
                   disabled={!currentInput.trim()}
@@ -1452,15 +1494,34 @@ export default function GameshowExperience() {
           !wheelResult && (
             <div className="pointer-events-auto absolute left-1/2 bottom-20 -translate-x-1/2">
               <button
-                onClick={() => {
-                  if (!wheelCanSpin || wheelSpinning || wheelResult) return;
-                  setWheelCanSpin(false);
-                  setWheelSpinning(true);
-                }}
+              onClick={() => {
+                if (wheelSpinning) {
+                  setWheelError("Het rad is al aan het draaien.");
+                  return;
+                }
+                if (!wheelCanSpin) {
+                  setWheelError("Je kunt het rad nu nog niet draaien.");
+                  return;
+                }
+                if (!wheelBudgets.length) {
+                  setWheelError(
+                    "Er zijn geen budgetopties beschikbaar om op te draaien.",
+                  );
+                  return;
+                }
+                setWheelError("");
+                setWheelCanSpin(false);
+                setWheelSpinning(true);
+              }}
                 className="font-pixel border-2 border-[#c8ff00] bg-[#c8ff00] px-8 py-3 text-sm text-black shadow-[0_0_30px_rgba(200,255,0,0.5)] transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
               >
                 DRAAI HET RAD →
               </button>
+            {wheelError && (
+              <p className="mt-2 text-center text-xs text-red-400">
+                {wheelError}
+              </p>
+            )}
             </div>
           )}
 
@@ -1581,6 +1642,7 @@ export default function GameshowExperience() {
                                       ...prev,
                                       [key]: pt,
                                     }));
+                                    setEditError("");
                                     setEditingKey(null);
                                   }}
                                   className={`font-pixel border py-1.5 text-[8px] tracking-widest transition-all ${
@@ -1598,13 +1660,34 @@ export default function GameshowExperience() {
                               <input
                                 type={inputType}
                                 value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
+                                  onChange={(e) => {
+                                    setEditValue(e.target.value);
+                                    if (editError) setEditError("");
+                                  }}
                                 onKeyDown={(e) => {
-                                  if (e.key === "Enter" && editValue.trim()) {
+                                    if (e.key === "Enter") {
+                                      const trimmed = editValue.trim();
+                                      if (!trimmed) {
+                                        setEditError(
+                                          "Dit veld mag niet leeg zijn.",
+                                        );
+                                        return;
+                                      }
+                                      if (inputType === "email") {
+                                        const emailPattern =
+                                          /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                        if (!emailPattern.test(trimmed)) {
+                                          setEditError(
+                                            "Vul een geldig e-mailadres in (bijv. naam@bedrijf.nl).",
+                                          );
+                                          return;
+                                        }
+                                      }
                                     setAnswers((prev) => ({
                                       ...prev,
-                                      [key]: editValue.trim(),
+                                        [key]: trimmed,
                                     }));
+                                      setEditError("");
                                     setEditingKey(null);
                                   }
                                   if (e.key === "Escape") setEditingKey(null);
@@ -1614,12 +1697,26 @@ export default function GameshowExperience() {
                               />
                               <button
                                 onClick={() => {
-                                  if (editValue.trim()) {
+                                    const trimmed = editValue.trim();
+                                    if (!trimmed) {
+                                      setEditError("Dit veld mag niet leeg zijn.");
+                                      return;
+                                    }
+                                    if (inputType === "email") {
+                                      const emailPattern =
+                                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                      if (!emailPattern.test(trimmed)) {
+                                        setEditError(
+                                          "Vul een geldig e-mailadres in (bijv. naam@bedrijf.nl).",
+                                        );
+                                        return;
+                                      }
+                                    }
                                     setAnswers((prev) => ({
                                       ...prev,
-                                      [key]: editValue.trim(),
+                                      [key]: trimmed,
                                     }));
-                                  }
+                                    setEditError("");
                                   setEditingKey(null);
                                 }}
                                 className="border border-[#c8ff00]/40 bg-[#c8ff00]/10 px-3 py-1.5 text-[#c8ff00] transition-all hover:bg-[#c8ff00] hover:text-black"
@@ -1628,6 +1725,9 @@ export default function GameshowExperience() {
                               </button>
                             </div>
                           )}
+                            {editError && (
+                              <p className="text-xs text-red-400">{editError}</p>
+                            )}
                         </div>
                       ) : (
                         <div className="flex items-center justify-between">
