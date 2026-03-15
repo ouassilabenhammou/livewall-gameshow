@@ -119,3 +119,7 @@ het invoer komt alsnog terug nadat de speler klaar is met praten wat niet hoort.
 **Prompt 30**
 
 de tekst van de presentator "dan mikken we op. Daar kunnen we iets heel tofs mee bouwen!" blijft niet lang in beeld, fix dit zoals de andere texts werken in de andere rondes.
+
+**Prompt 31**
+
+de knop "draai het rad" die flashed en daarna laat hij hem pas goed zien, fix dit.

@@ -1104,6 +1104,11 @@ export default function GameshowExperience() {
       setWheelTargetBudget(targetBudget);
       setWheelResult("");
       setWheelSpinning(false);
+      // Al in wheelZoom? Niet opnieuw resetten anders flasht de knop (effect draait op phase-change).
+      if (phase === "wheelZoom") {
+        if (!wheelResult && !wheelSpinning) setWheelCanSpin(true);
+        return;
+      }
       setWheelCanSpin(false);
       // Korte leespauze na "Draai aan het rad", dan rad tonen
       const t = setTimeout(() => {
