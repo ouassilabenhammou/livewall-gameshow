@@ -88,6 +88,227 @@ het is geen campagne, en de identeit moet op het begin want het is een escape ro
 
 **Prompt 20**
 
+ik heb het beetje aangepast dit is het nu: 🎮 CONCEPT
+“The Experience Vault”
+Verhaal
+LiveWall heeft een experimentele digitale experience-engine gebouwd.
+Die engine kan voor elk bedrijf een unieke interactieve ervaring genereren.
+Maar…
+De engine is vergrendeld in een digitale kluis.
+Alleen bedrijven met visie kunnen hem activeren.
+De bezoeker is geen “formulier invuller”.
+Hij is een Operator die de engine moet ontgrendelen.
+Elke kamer activeert een onderdeel van de digitale experience.
+Aan het einde wordt hun eigen experience blueprint zichtbaar.
+🔐 STRUCTUUR VAN DE ESCAPE ROOM
+🟢 KAMER 1 – Toegang tot de Kluis (Identiteit Puzzel)
+Dit is het begin.
+Donkere ruimte. Subtiel groen licht beweegt.
+Tekst:
+“Welkom Operator.
+Voer je identiteit in om toegang te krijgen tot de Experience Vault.”
+Maar geen saaie velden.
+Puzzel 1 – Naam
+Letters zweven subtiel in beeld.
+Wel alle letters van het alphabet moet zichtbaar zijn.
+Speler klikt letters om zijn naam te vormen.
+Geselecteerde letters worden magnetisch naar een centrale lijn getrokken.
+Ongebruikte letters vervagen.
+Wanneer compleet:
+Groene scanlijn gaat over de naam.
+Puzzel 2 – Bedrijfsnaam
+Er verschijnt een soort “digitale typemachine”.
+Terwijl je typt, worden letters opgebouwd uit groene pixels.
+Elke letter bouwt zich visueel op.
+Puzzel 3 – Email
+Email moet correct ingevoerd worden.
+Wanneer @ wordt getypt → animatiepulse.
+Wanneer volledig correct → groen slotje verschijnt.
+Als alles correct is:
+Een enorme kluisdeur verschijnt.
+Deze draait langzaam open.
+Tekst:
+“Identiteit geverifieerd.
+Toegang verleend.”
+🟢 KAMER 2 – De Impact Generator (Budget)
+In plaats van bedragen:
+Drie energielevels maar zet wel een range van een bedrag per energielevel erbij zodat de speler wel weet hoeveel het ongeveer kost elk energielevel:
+Basis Experience
+Interactieve Launch
+Full Scale Digitale Experience
+Puzzel:
+Er zijn drie energiecellen.
+Speler moet er één activeren door hem 3 seconden vast te houden.
+Hoe hoger het level:
+Hoe rijker de animaties worden in de kamer.
+De ruimte wordt visueel indrukwekkender bij hogere keuze.
+Dit maakt budget voelbaar.
+🟢 KAMER 3 – Experience Architect
+Nu bouwen ze hun type digitale experience.
+Vier minimalistische iconen draaien langzaam:
+Branded Game
+Interactieve Web Experience
+Live Digitale Activatie
+Community Platform
+Puzzel:
+Er zweven verbindingslijnen.
+Speler moet het juiste icoon naar het midden slepen om de blueprint compleet te maken.
+Wanneer gekozen:
+Alle eerdere keuzes verbinden zich in een digitaal netwerk.
+Een blueprint wordt opgebouwd.
+🔓 FINALE – Experience Blueprint
+De kluis opent volledig.
+Binnenin:
+Een strak overzicht:
+Operator: [Naam]
+Bedrijf: [Bedrijfsnaam]
+Email: [Email]
+Impact: [Keuze]
+Type Experience: [Keuze]
+Tekst:
+“Dit is jouw digitale experience.”
+Knop:
+“Verzend naar LiveWall”
+Na klik:
+De blueprint wordt opgeslagen.
+Groene pulse.
+Fade to zwart.
+Tekst:
+“Wij nemen binnenkort contact met je op.”
+🎨 VISUELE RICHTING
+Achtergrond: #0F0F0F
+Accent: Lichtgroen (#2EFF7A)
+Subtiele glows
+Veel negative space
+Grote typografie
+Animaties 800–1200ms
+Geen speels/kinderachtig
+High-end tech gevoel
+💡 Waarom dit werkt
+Identiteit is logisch aan het begin
+Alles voelt als bouwen, niet invullen
+Budget wordt visueel voelbaar
+Verhaal is consistent
+Past perfect bij een bureau dat digitale experiences maakt
+Contactformulier is volledig geïntegreerd
+
+**Prompt 21**
+
+Vertel wel een beetje het verhaal ofzo in elke kamer miss ook kleine hints enzo zodat de speler wel beetje weet wat te doen en in het verhaal zit.
+
+**Prompt 22**
+
+Dit is al goed ja, alleen elke kamer moet echt een game zijn dus niet alleen invoeren of op klikken maar echt een soort van puzzle per kamer, zoals in een escape room is.
+
+**Prompt 23**
+
+En we halen de rare “geen handmatige invoer” logica weg.
+
+**Prompt 24**
+
+ik wil iets meer dit: 1	Escape room (the experience vault)
+1.1	Inleiding
+The Experience Vault is een spannende escape room waar spelers een digitale wereld verkennen. In deze wereld zit de Experience Engine, een systeem dat speciale digitale ervaringen maakt. Deze engine is echter opgesloten in een kluis, en is goed verborgen.
+Tijdens het spel vinden spelers informatie over wat zij willen qua digitale ervaringen. Door puzzels op te lossen, leren ze meer over hun eigen voorkeuren. Aan het einde moeten ze een code invoeren om de kluis te openen en de Experience Engine te activeren. Daarmee brengen ze hun droomervaring tot leven!
+1.2	Kamers
+1.2.1	Kamer 0: Intro Scherm
+Wanneer spelers op “Start Activatie” klikken, begint de timer van 5 minuten. Bij het verstrijken van de tijd glitcht het scherm naar zwart met de boodschap:
+•	“Engine stability lost.”
+•	“Herstart vereist.”
+Spelers beginnen bij Kamer 1.
+1.2.2	Kamer 1: Identiteitskamer
+Puzzel: Naam Verbergen
+•	Verhaal:
+o	De kamer is gevuld met letters van het alfabet die aanvankelijk zichtbaar zijn.
+•	Gameplay:
+o	Alle letters van het alfabet zijn zichtbaar en lichten op.
+o	Na 5 seconden dimmen alle letters, waardoor spelers hun naam moeten herinneren.
+•	Uitdaging:
+o	Spelers moeten de letters van hun naam zo snel mogelijk selecteren voordat ze verdwijnen.
+o	Bij een fout gaat er 10 seconden van de timer af, en letters worden voor 5 seconden weer getoond en daarna weer gedimt en worden de hints duidelijker.
+•	Feedback:
+o	Bij de juiste samenstelling verschijnt de boodschap: “Naam bevestigd!”
+1.2.3	Kamer 2: Bedrijfsnaam Kamer
+Puzzel: Bedrijfsnaam Jacht
+•	Verhaal:
+o	In deze kamer zweven de letters van het alfabet langzaam door de lucht.
+•	Gameplay:
+o	Spelers moeten de letters van hun bedrijfsnaam slepen naar een invoerveld waar hun bedrijfsnaam verschijnt.
+•	Uitdaging:
+o	Spelers moeten slimme keuzes maken om de juiste letters te vangen.
+o	Bij een fout gaat er 10 seconden van de timer af en worden de hints duidelijker.
+•	Feedback:
+o	Zodra de bedrijfsnaam verzameld is, verschijnt de boodschap: “Bedrijfsnaam bevestigd!”
+1.2.4	Kamer 3: E-mail Kamer
+Puzzel: E-mail Labyrint
+•	Verhaal:
+o	Deze kamer is ingericht als een doolhof van lichtgevende buizen, die leiden naar de verschillende secties van een e-mailadres.
+•	Gameplay:
+o	Spelers zien een labyrint met drie hoofdsecties: gebruikersnaam, @-symbool en domeinnaam.
+o	In elke sectie zweven de juiste letters, en spelers moeten de juiste paden bewandelen om deze te verzamelen.
+•	Uitdaging:
+o	Spelers navigeren door het labyrint binnen een tijdslimiet.
+o	Foute paden leiden tot korte resets en 10 seconden aftrek van de timer en worden de hints duidelijker.
+•	Feedback:
+o	Zodra het e-mailadres is samengesteld, verschijnt de boodschap: “E-mail succesvol vrijgegeven!”
+1.2.5	Kamer 4: Budget Kamer
+Puzzel: Budget Balanceren
+•	Verhaal:
+o	In deze kamer zijn er verschillende budgetopties en energieniveaus zichtbaar, waarbij spelers moeten kiezen wat voor hen het beste is.
+•	Gameplay:
+o	Spelers krijgen een lijst van budgetmogelijkheden en moeten de juiste optie kiezen door middel van hints.
+•	Uitdaging:
+o	Bij elke keuze willen ze ervoor zorgen dat hun selectie binnen de juiste financiële parameters valt.
+o	Foute keuzes zorgen voor visuele feedback en 10 seconden aftrek van de timer en worden de hints duidelijker.
+•	Feedback:
+o	Bij de juiste keuze verschijnt de boodschap: “Budget bevestigd!”
+1.2.6	Kamer 5: Experience Kamer
+Puzzel: Experience Matching
+•	Verhaal:
+o	Deze kamer toont verschillende ervaringen die moeten worden gematcht met het gekozen budget.
+•	Gameplay:
+o	Spelers zien de volgende reeks ervaringen en moeten deze koppelen aan hun eerdere budgetkeuze:
+	Branded Game
+	Interactieve Web Experience
+	Live Digitale Activatie
+	Community Platform
+o	Er zijn hints die hen helpen bij het maken van de juiste keuzes, zoals welke budget erbij hoort ofzo.
+•	Uitdaging:
+o	Spelers moeten ervoor zorgen dat de gekozen ervaringen overeenkomen met het energieniveau dat ze hebben ingesteld.
+o	Foute keuzes leiden tot een straf van 10 seconden en worden de hints duidelijker.
+•	Feedback:
+o	Zodra de juiste keuze is gemaakt, verschijnt de boodschap: “Experience succesvol gekozen!”
+1.2.7	Kamer 6: Code Slot
+Puzzel: Code Invoer
+•	Verhaal:
+o	Na het voltooien van alle kamers moeten spelers een code invoeren gebaseerd op de informatie die ze hebben verzameld.
+•	Gameplay:
+o	De code bestaat uit drie elementen:
+	Aantal letters in de naam (Kamer 1).
+	Aantal woorden in de bedrijfsnaam (Kamer 2).
+	Impactniveau (1, 2 of 3) op basis van het gekozen budget (Kamer 4).
+	Een nummer (1, 2, 3 of 4) voor de gekozen ervaring (Kamer 5).
+•	Uitdaging:
+o	Spelers moeten deze elementen correct berekenen en invoeren om te winnen.
+o	Fouten leiden tot 10 seconden aftrek van de timer en worden de hints duidelijker.
+•	Feedback:
+o	Bij een correcte invoer verandert alles naar groen en verschijnt de boodschap: “Code succesvol ingevoerd!”
+1.3	Einde
+Na het doorlopen van alle kamers krijgen spelers een overzicht van hun vrijgegeven informatie:
+•	Operator: [Naam]
+•	Bedrijf: [Bedrijfsnaam]
+•	Email: [E-mail]
+•	Impact: [Budget]
+•	Experience: [Gekozen ervaring]
+De boodschap: “Engine succesvol geactiveerd.”
+Met de knop: “Verzend naar LiveWall” kunnen ze hun gegevens definitief indienen. Na het verzenden verschijnt een eindpagina met de tekst: “De engine is geactiveerd. Ons team neemt binnenkort contact met je op.”.
+
+**Prompt 25**
+
+elke puzzel zit in een aparte kamer en bij puzzel 2 de bedrijfsnaam is het juist dat alle letters rond vliegen en je moet dan de juiste letters van de bedrijfsnaam slepen naar het invoerveld. de rest is goed
+
+**Prompt 26**
+
 Nu alleen nog meer dit:
 
 🎮 THE EXPERIENCE VAULT – PUZZLE EDITION
@@ -253,11 +474,11 @@ Knop:
 
 “Verzend naar LiveWall”
 
-**Prompt 21**
+**Prompt 27**
 
 Zeg niet dat de kluis geen hadnmatige invoer toestaat want dat is raar, verander ook kamer 1 want dat is niet echt een spel nu, zorg dat je de naam, bedrijfsnaam en email wel op een pagina (Kamer) moet doen. Zodat het duidelijk is ook dat je nog steeds bijvoorbeeld in kamer 1 zit en nog niet ontsnapt bent uit kamer 1 of etc.. De budget kamer die is perfect niks aan doen. De andere kamers wel meer een puzzelachtig maken. En de code op het einde is ook perfect.
 
-**Prompt 22**
+**Prompt 28**
 
 De thema en kleuren en achtergrond is perfect nu pa alleen de puzzels enzo aan. Dit is wat ik wil: 1	Escape room (the experience vault)
 1.1	Inleiding

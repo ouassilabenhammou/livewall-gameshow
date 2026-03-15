@@ -75,3 +75,7 @@ verwijder de knop als het rad gestopt is. beweeg de camera naar het tv scherm zo
 **Prompt 19**
 
 voeg overal error handling toe, vooral in de input velden en wanneer de speler een keuze mag maken en aan het rad mag draaien
+
+**Prompt 20**
+
+voeg nog error handling toe als een speler op het kruisje rechtsboven klikt tijdens de gameshow dat alles stopt en reset dus ook de textboxes enzo want die blijf je nu zien als de speler op kruisje klikt
