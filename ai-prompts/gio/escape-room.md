@@ -1,225 +1,92 @@
-# Escape Room maken (Cursor AI + ChatGPT)
+## ChatGPT – Prompts
 
 **Prompt 1**
 
-🎮 THE EXPERIENCE VAULT
-Cinematische Escape Contactervaring
-🟢 INTRO – De Activatie
-
-Zwart scherm.
-Subtiele groene scanlijn beweegt horizontaal.
-
-Langzame tekst fade-in:
-
-“LiveWall ontwikkelde een experimentele Experience Engine.”
-“Een systeem dat digitale werelden bouwt voor bedrijven met visie.”
-“Maar de engine is beveiligd.”
-“Alleen een geverifieerde Operator kan hem activeren.”
-
-Groene cursor knippert.
-
-“Ben jij klaar om de kluis te betreden?”
-
-Knop: Start de activatie
-
-Fade naar Kamer 1.
-
-🔐 KAMER 1 – IDENTITEITSVERIFICATIE
-
-De ruimte voelt leeg. Donker. Stil.
-
-In de verte zie je een massieve kluisdeur.
-
-Een stem (tekst):
-
-“Voordat je toegang krijgt… moet de kluis weten wie je bent.”
-
-🔎 Hint subtiel onderin:
-
-“Selecteer letters om je identiteit te vormen.”
-
-🧩 NAAM PUZZEL
-
-Alle letters van het alfabet zweven rustig in 3D-ruimte.
-
-Wanneer je een letter klikt:
-
-Hij pulseert lichtgroen
-
-Wordt magnetisch naar de centrale lijn getrokken
-
-Wanneer naam compleet is:
-Groene scanlijn beweegt over de naam.
-
-Tekst:
-
-“Identiteit herkend…”
-
-🧩 BEDRIJFSNAAM
-
-Kluis projecteert een digitale typemachine.
-
-Tekst:
-
-“Welke organisatie vertegenwoordigt de Operator?”
-
-Letters bouwen zich pixel voor pixel op terwijl je typt.
-
-🧩 EMAIL
-
-Tekst:
-
-“Waar moet de ontgrendelde blueprint naartoe gestuurd worden?”
-
-Bij typen van @:
-Korte pulse animatie.
-
-Bij geldige email:
-Groen slotje → klik geluid.
-
-Wanneer alles correct is:
-
-De kluisdeur activeert.
-Mechanisch geluid.
-Groene lijnen lichten op.
-
-“Identiteit geverifieerd.”
-“Toegang verleend.”
-
-De deur schuift langzaam open.
-
-🔐 KAMER 2 – DE IMPACT GENERATOR
-
-Je stapt een energiekamer binnen.
-
-In het midden zweeft een kern.
-Drie energiecellen draaien eromheen.
-
-Tekst:
-
-“Elke digitale experience vereist energie.”
-“Hoeveel impact wil je genereren?”
-
-Onder elk level staat subtiel een range:
-
-Basis Experience (€10k – €25k)
-
-Interactieve Launch (€25k – €60k)
-
-Full Scale Digitale Experience (€60k+)
-
-🔎 Hint:
-
-“Houd een energiemodule vast om deze te activeren.”
-
-Wanneer speler 3 seconden vasthoudt:
-
-Module laadt visueel op
-
-Kern pulseert
-
-Ruimte wordt rijker en dynamischer
-
-Bij keuze:
-
-“Impactniveau ingesteld.”
-
-Groene energie stroomt naar de volgende deur.
-
-🔐 KAMER 3 – EXPERIENCE ARCHITECT
-
-Nu zie je een half opgebouwde digitale blueprint.
-
-Tekst:
-
-“De engine heeft energie ontvangen.”
-“Selecteer het type experience dat jouw visie tot leven brengt.”
-
-Vier minimalistische iconen draaien langzaam:
-
-Branded Game
-
-Interactieve Web Experience
-
-Live Digitale Activatie
-
-Community Platform
-
-🔎 Hint:
-
-“Sleep een module naar het centrum om de architectuur te voltooien.”
-
-Wanneer gekozen:
-
-Lijnen verbinden zich
-
-Blueprint bouwt zich op
-
-Vorige keuzes (impact) beïnvloeden hoe groot de blueprint visueel is
-
-Tekst:
-
-“Structuur voltooid.”
-“Engine gereed voor ontgrendeling.”
-
-🔓 FINALE – EXPERIENCE BLUEPRINT
-
-De eerste kluisdeur verschijnt opnieuw.
-
-Maar nu opent hij volledig.
-
-Binnenin:
-
-Een strak, minimalistisch overzicht.
-
-🧾 JOUW EXPERIENCE
-
-Operator: [Naam]
-Organisatie: [Bedrijf]
-Email: [Email]
-Impactniveau: [Keuze]
-Type Experience: [Keuze]
-
-Tekst:
-
-“Dit is jouw digitale experience blueprint.”
-“Controleer de gegevens voordat je de engine definitief activeert.”
-
-Knoppen:
-
-Wijzig keuze (klein subtiel)
-
-Verzend naar LiveWall (primair groen)
-
-Bij verzenden:
-
-Blueprint wordt opgeslagen.
-Groene pulse door het scherm.
-Alles fade naar zwart.
-
-Laatste tekst:
-
-“De engine is geactiveerd.”
-“Ons team neemt binnenkort contact met je op.”
-
-💡 Waarom dit sterker is
-
-Elke kamer heeft narratieve context
-
-Elke puzzel voelt logisch
-
-Speler krijgt subtiele hints
-
-Budget voelt als “energie”
-
-Geen kinderachtige game, maar high-end interactief
-
-Het contactformulier is volledig geïntegreerd
-
-Het voelt als een demo van hun eigen expertise
-
+we hebben een opdracht gekregen van school en we moeten de contact formulier van de website van https://www.livewall.nl/ interactief maken geef me leuke voorbeelden het moet wel gameified richting die kant op
 
 **Prompt 2**
+
+wat voor game kan ik in een contact formulier maken op een website, we zaten aan een game show ofzo te denken
+
+**Prompt 3**
+
+geef meer ideen
+
+**Prompt 4**
+
+het moet echt een wauw effect geven aan de potentiele klanten die op de contact pagina komen
+
+**Prompt 5**
+
+we willen het cinematisch, minimalistisch en hebben
+
+**Prompt 6**
+
+oke ik wil de escape room maken hoe doe ik dit
+
+**Prompt 7**
+
+verzin leukere puzzles en wanneer voer je je gegevens enzo in dan
+
+**Prompt 8**
+
+hoezo over groen en planten? Dit is hun website: https://www.livewall.nl/
+
+**Prompt 9**
+
+ook budget moet erin dus wat hun budget is
+
+**Prompt 10**
+
+de contactformulier miss alleen ingevuld laten zien dus soort van review contactformulier gebaseerd op elke puzzle in elke kamer van de escape room
+
+**Prompt 11**
+
+maar het moet wel een escape room zijn dus wel gamified
+
+**Prompt 12**
+
+ik wil eerst een design ervan maken in figma hoe doe ik dit
+
+**Prompt 13**
+
+ik ben nu bij stap 2 ik heb een frame gemaakt en op desktop afmeting gezet en nu?
+
+**Prompt 14**
+
+ik heb nu de kluis in kamer 1 wat nu
+
+**Prompt 15**
+
+maak een goede prompt zodat ik die in lovable kan doen, verander wel nog paar dingen zoals de escape room moet persoonlijker dus bijvoorbeeld eerst vragen wie er meedoet dus dan heb je gelijk de namen voor de contact en dit dus in een puzzel ook doen en andere info zoals budget, email etc.. Er moet ook een verhaal in zitten en ik wil iets met een kluis doen die draait en dan open gaat en gewoon veel animaties enzo per kamer en interactief maken. Ook een thema die past bij het bedrijf livewall.nl
+
+**Prompt 16**
+
+het moet wel in het nederlands
+
+**Prompt 17**
+
+dit is wat hij deed: Ik ga een cinematische escape room bouwen met een donker, high-end design. Geïnspireerd door premium digitale agency experiences en vault/heist interfaces. Design: Donker (#0F0F0F), neon cyan accenten, Space Grotesk + JetBrains Mono fonts, glow-effecten, vloeiende 800-1200ms animaties.
+V1 Features:
+Room 0: Zwevende letters om naam te spellen, e-mail input, terminal bedrijfsnaam
+Room 1: Kluisdial met 6 strategische doelen (kies 2)
+Room 2: Doelgroep scanner met 4 silhouetten
+Room 3: Energie kern budget slider
+Room 4: Experience configurator met 4 symbolen
+Finale: Gepersonaliseerd overzicht met unlock animatie
+Create cinematic escape room UI
+Done
+Maar ik wil nu de basis dingen dus zeg maar een soort van wie er mee doet aan de escape room op het begin dus miss als eerste puzzel en vervolgens de rest maar wel elke pagina moet een escape room kamer zijn en daarin een puzzel waarin je dus zoals budget etc kan verdienen of kiezen ofzo. Het moet wel allemaal livewall thema zijn dus hou het ook gameified en zwart met licht groen als thema denk en hou de puzzels wel simpel maar ook niet te simpel. En op het einde een review zodat ze wel hun contactformulier kunnen controleen dat alles klopt en dan verzenden.
+
+**Prompt 18**
+
+Naam, email, budget en doel moet in het contactformulier. Het gaat dus om dat ze hun digitale ervaring kunnen bouwen
+
+**Prompt 19**
+
+het is geen campagne, en de identeit moet op het begin want het is een escape room spel dus op het begin moet de speler hun naam en bedrijfnaam en email invoeren maar wel op een speelse manier en alle puzzels moeten natuurlijk speels zijn, het liefst ook dat het mooi visueel is. En heel belangrijk is dat er een soort verhaallijn in moet zitten bedenk iets leuks wat ook vooral gameified is. Het bedrijf waar ik deze contactforumlier game voor maak is een bedrijf dat digitale experiences creert voor bedrijven.
+
+**Prompt 20**
 
 Nu alleen nog meer dit:
 
@@ -386,11 +253,11 @@ Knop:
 
 “Verzend naar LiveWall”
 
-**Prompt 3**
+**Prompt 21**
 
 Zeg niet dat de kluis geen hadnmatige invoer toestaat want dat is raar, verander ook kamer 1 want dat is niet echt een spel nu, zorg dat je de naam, bedrijfsnaam en email wel op een pagina (Kamer) moet doen. Zodat het duidelijk is ook dat je nog steeds bijvoorbeeld in kamer 1 zit en nog niet ontsnapt bent uit kamer 1 of etc.. De budget kamer die is perfect niks aan doen. De andere kamers wel meer een puzzelachtig maken. En de code op het einde is ook perfect.
 
-**Prompt 4**
+**Prompt 22**
 
 De thema en kleuren en achtergrond is perfect nu pa alleen de puzzels enzo aan. Dit is wat ik wil: 1	Escape room (the experience vault)
 1.1	Inleiding
