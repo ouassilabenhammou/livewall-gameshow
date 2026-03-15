@@ -91,3 +91,8 @@ na het draaien gaat hij naar het tv scherm maar dan opeens gaat hij terug naar h
 **Prompt 23**
 
 tijdens dat de camera op de tv scherm staat en wacht, laat de presentator iets zeggen of reageren op de budget, zodat de flow van de gameshow wel goed verloopt.
+
+**Prompt 24**
+
+ik heb bij const BUDGET_BY_PROJECT gezet welke budget ranges bij elk project hoort. Dus als een speler bijvoorbeeld App als project kiest moet het rad altijd op de budget van App komen. Maar het rad moet wel de andere prijzen ook laten zien op het rad maar hij stopt alleen precies op de budget van de gekozen project, fix dit. Verder wil ik dat op het eind scherm dat als de speler het project wijzigt het goede budget ook meteen veranderd naar het budget die bij het gekozen project hoort.
+

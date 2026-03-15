@@ -655,6 +655,7 @@ function Scene({
   showPlayerReply,
   screenText,
   wheelBudgets,
+  wheelTargetBudget,
   wheelSpinning,
   onWheelComplete,
   speaker,
@@ -667,6 +668,7 @@ function Scene({
   showPlayerReply: boolean;
   screenText: string;
   wheelBudgets: string[];
+  wheelTargetBudget: string;
   wheelSpinning: boolean;
   onWheelComplete: (result: string) => void;
   speaker: Speaker;
@@ -685,9 +687,10 @@ function Scene({
       <RoundStage active={!isIdle} />
       <TVScreen active={screenActive} budgetText={screenText || undefined} />
       <Audience />
-      {showWheel && wheelBudgets.length > 0 && (
+      {showWheel && wheelBudgets.length > 0 && wheelTargetBudget && (
         <BudgetWheel
           budgets={wheelBudgets}
+          targetBudget={wheelTargetBudget}
           spinning={wheelSpinning}
           onSpinComplete={onWheelComplete}
         />
@@ -788,61 +791,31 @@ const PROJECT_TYPES = [
 
 const BUDGET_BY_PROJECT: Record<string, string[]> = {
   Website: [
-    "€3k–€8k",
-    "€8k–€15k",
-    "€15k–€30k",
-    "€30k–€50k",
-    "€50k–€75k",
-    "€75k+",
+    "€5k–€10k",
   ],
   App: [
-    "€10k–€25k",
-    "€25k–€50k",
-    "€50k–€75k",
-    "€75k–€100k",
-    "€100k–€150k",
-    "€150k+",
+    "€10k–€20k",
   ],
   Campagne: [
-    "€2k–€5k",
-    "€5k–€12k",
-    "€12k–€25k",
-    "€25k–€50k",
-    "€50k–€75k",
-    "€75k+",
+    "€20k–€30k",
   ],
   Branding: [
-    "€2k–€5k",
-    "€5k–€10k",
-    "€10k–€20k",
-    "€20k–€35k",
-    "€35k–€50k",
-    "€50k+",
+    "€30k–€40k",
   ],
   "E-commerce": [
-    "€5k–€15k",
-    "€15k–€30k",
-    "€30k–€60k",
-    "€60k–€100k",
-    "€100k–€150k",
-    "€150k+",
+    "€40k–€50k",
   ],
   Anders: [
-    "€2k–€10k",
-    "€10k–€25k",
-    "€25k–€50k",
-    "€50k–€100k",
-    "€100k–€150k",
-    "€150k+",
+    "€50k+",
   ],
 };
 const DEFAULT_BUDGETS = [
-  "€3k–€10k",
-  "€10k–€25k",
-  "€25k–€50k",
-  "€50k–€100k",
-  "€100k–€150k",
-  "€150k+",
+  "€5k–€10k",
+  "€10k–€20k",
+  "€20k–€30k",
+  "€30k–€40k",
+  "€40k–€50k",
+  "€50k+",
 ];
 
 // ─── Budget wheel ────────────────────────────────────────────────────────────
@@ -866,10 +839,13 @@ const WHEEL_TEXT_COLORS = [
 
 function BudgetWheel({
   budgets,
+  targetBudget,
   spinning,
   onSpinComplete,
 }: {
   budgets: string[];
+  /** Budget to land on (must be one of budgets); wheel shows all but stops here */
+  targetBudget: string;
   spinning: boolean;
   onSpinComplete: (result: string) => void;
 }) {
@@ -895,7 +871,10 @@ function BudgetWheel({
 
   useEffect(() => {
     if (!spinning) return;
-    const targetIdx = Math.floor(Math.random() * segCount);
+    const targetIdx = (() => {
+      const idx = budgets.indexOf(targetBudget);
+      return idx >= 0 ? idx : Math.floor(Math.random() * segCount);
+    })();
     // Compute final angle so targetIdx lands at 12 o'clock (π/2)
     let stop = Math.PI / 2 - targetIdx * segAngle - segAngle / 2;
     while (stop < 0) stop += Math.PI * 2;
@@ -908,7 +887,7 @@ function BudgetWheel({
       targetIdx,
       done: false,
     };
-  }, [spinning, segCount, segAngle]);
+  }, [spinning, segCount, segAngle, budgets, targetBudget]);
 
   useFrame((state) => {
     const s = spinRef.current;
@@ -1031,6 +1010,7 @@ export default function GameshowExperience() {
 
   // ── Wheel state ──
   const [wheelBudgets, setWheelBudgets] = useState<string[]>([]);
+  const [wheelTargetBudget, setWheelTargetBudget] = useState("");
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelResult, setWheelResult] = useState("");
   const [wheelCanSpin, setWheelCanSpin] = useState(false);
@@ -1083,8 +1063,10 @@ export default function GameshowExperience() {
     if (step.isWheel) {
       if (answers.budget) return; // Already spun; handleWheelComplete owns phase flow
       const projectType = answers.projectType ?? "";
-      const budgets = BUDGET_BY_PROJECT[projectType] ?? DEFAULT_BUDGETS;
-      setWheelBudgets(budgets);
+      const projectBudgets = BUDGET_BY_PROJECT[projectType] ?? DEFAULT_BUDGETS;
+      const targetBudget = projectBudgets[0] ?? DEFAULT_BUDGETS[0];
+      setWheelBudgets(DEFAULT_BUDGETS);
+      setWheelTargetBudget(targetBudget);
       setWheelResult("");
       setWheelSpinning(false);
       setWheelCanSpin(false);
@@ -1201,6 +1183,7 @@ export default function GameshowExperience() {
     setIsComplete(false);
     setScreenText("");
     setWheelBudgets([]);
+    setWheelTargetBudget("");
     setWheelSpinning(false);
     setWheelResult("");
     setWheelCanSpin(false);
@@ -1277,6 +1260,7 @@ export default function GameshowExperience() {
           showPlayerReply={showPlayerReply}
           screenText={screenText}
           wheelBudgets={wheelBudgets}
+          wheelTargetBudget={wheelTargetBudget}
           wheelSpinning={wheelSpinning}
           onWheelComplete={handleWheelComplete}
           speaker={speaker}
@@ -1604,9 +1588,14 @@ export default function GameshowExperience() {
                                 <button
                                   key={pt}
                                   onClick={() => {
+                                    const projectBudgets =
+                                      BUDGET_BY_PROJECT[pt] ?? DEFAULT_BUDGETS;
+                                    const newBudget =
+                                      projectBudgets[0] ?? DEFAULT_BUDGETS[0];
                                     setAnswers((prev) => ({
                                       ...prev,
                                       [key]: pt,
+                                      budget: newBudget,
                                     }));
                                     setEditError("");
                                     setEditingKey(null);
