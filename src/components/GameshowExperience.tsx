@@ -1079,8 +1079,9 @@ export default function GameshowExperience() {
       return () => clearTimeout(t);
     }
 
-    // Wheel step: camera zooms to wheel, spin starts
+    // Wheel step: camera zooms to wheel, spin starts (only when not yet completed)
     if (step.isWheel) {
+      if (answers.budget) return; // Already spun; handleWheelComplete owns phase flow
       const projectType = answers.projectType ?? "";
       const budgets = BUDGET_BY_PROJECT[projectType] ?? DEFAULT_BUDGETS;
       setWheelBudgets(budgets);
@@ -1117,13 +1118,16 @@ export default function GameshowExperience() {
       setWheelResult(result);
       setAnswers((prev) => ({ ...prev, budget: result }));
       setScreenText(result);
-      // After result: first move camera to TV screen, then advance to outro
+      // After result: move camera to TV screen (budget only on TV), hold there, then outro
       const outroIdx = INTERVIEW_STEPS.findIndex((s) => s.isOutro);
-      // Short pause on the wheel result overlay
       setTimeout(() => {
         setPhase("tvBudget");
-      }, 800);
-      // Then move back to presenter for outro
+        // Presenter reacts to the chosen budget while camera is on the TV
+        setPresenterFullText(
+          `${playerName}, dan mikken we op ${result}. Daar kunnen we iets heel tofs mee bouwen!`,
+        );
+      }, 400);
+      // Hold camera on TV screen so budget is visible, then continue to outro
       setTimeout(() => {
         setPhase("questionPlayer");
         setScreenText("");
@@ -1131,7 +1135,7 @@ export default function GameshowExperience() {
         setPresenterFullText(
           INTERVIEW_STEPS[outroIdx].getPresenterText(playerName),
         );
-      }, 4000);
+      }, 4500);
     },
     [playerName],
   );
@@ -1241,14 +1245,11 @@ export default function GameshowExperience() {
   );
 
   const currentStep = INTERVIEW_STEPS[interviewStep];
-  const isQuestionPhase = phase === "questionPlayer" || phase === "wheelZoom";
+  const isQuestionPhase =
+    phase === "questionPlayer" ||
+    phase === "wheelZoom" ||
+    phase === "tvBudget";
   const showPresenter = isQuestionPhase && interviewStep >= 0 && !isComplete;
-  // Name chip: only during camera travel (not question or idle)
-  const showNameChip =
-    phase !== "idle" &&
-    phase !== "questionPlayer" &&
-    phase !== "wheelZoom" &&
-    playerName;
 
   // Determine who is "aan het woord" for the spotlight:
   // - during input we highlight the player
@@ -1338,18 +1339,6 @@ export default function GameshowExperience() {
               >
                 START →
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Camera travel name chip ── */}
-        {showNameChip && (
-          <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2">
-            <div className="animate-fade-in-up flex items-center gap-2 border border-white/10 bg-black/70 px-5 py-2 backdrop-blur-md">
-              <div className="h-1.5 w-1.5 rounded-full bg-[#c8ff00]" />
-              <span className="font-pixel text-[8px] tracking-wider text-[#c8ff00]">
-                {playerName.toUpperCase()}
-              </span>
             </div>
           </div>
         )}
@@ -1524,29 +1513,6 @@ export default function GameshowExperience() {
             )}
             </div>
           )}
-
-        {/* ── Wheel spinning banner ── */}
-        {phase === "wheelZoom" && wheelSpinning && !wheelResult && (
-          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <p className="font-pixel animate-pulse text-[11px] tracking-[0.3em] text-[#c8ff00]/80">
-              HET RAD DRAAIT...
-            </p>
-          </div>
-        )}
-
-        {/* ── Wheel result banner ── */}
-        {wheelResult && phase === "wheelZoom" && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="rounded-sm bg-black/70 px-10 py-6 text-center shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-              <p className="font-pixel mb-3 text-[10px] tracking-[0.4em] text-[#c8ff00]">
-                BUDGET
-              </p>
-              <p className="font-pixel text-5xl text-white drop-shadow-[0_0_25px_rgba(0,0,0,0.9)]">
-                {wheelResult}
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* ── Complete / reward screen ── */}
         {isComplete && (
