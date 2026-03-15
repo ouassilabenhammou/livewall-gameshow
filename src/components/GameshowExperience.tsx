@@ -1028,34 +1028,69 @@ export default function GameshowExperience() {
 
   const nameInputRef = useRef<HTMLInputElement>(null);
   const answerInputRef = useRef<HTMLInputElement>(null);
+  const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Typewriter ──
+  // ── Typewriter (faster + skip on click) ──
+  const skipTyping = useCallback(() => {
+    if (typingIntervalRef.current && presenterFullText) {
+      clearInterval(typingIntervalRef.current);
+      typingIntervalRef.current = null;
+      setPresenterTypedText(presenterFullText);
+      setTypingDone(true);
+    }
+  }, [presenterFullText]);
+
   useEffect(() => {
     if (!presenterFullText) return;
     let i = 0;
     setPresenterTypedText("");
     setTypingDone(false);
     setShowInput(false);
-    const interval = setInterval(() => {
+    typingIntervalRef.current = setInterval(() => {
       if (i <= presenterFullText.length) {
         setPresenterTypedText(presenterFullText.slice(0, i));
         i++;
       } else {
-        clearInterval(interval);
+        if (typingIntervalRef.current) {
+          clearInterval(typingIntervalRef.current);
+          typingIntervalRef.current = null;
+        }
         setTypingDone(true);
       }
     }, 50);
-    return () => clearInterval(interval);
+    return () => {
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current);
+        typingIntervalRef.current = null;
+      }
+    };
   }, [presenterFullText]);
 
   // ── After typing done ──
   useEffect(() => {
-    if (!typingDone || interviewStep < 0) return;
+    if (!typingDone) return;
+
+    // TV-budget: presentator heeft "dan mikken we op X..." uitgetypt → leespauze, dan naar outro (zoals andere rondes)
+    if (phase === "tvBudget" && answers.budget) {
+      const outroIdx = INTERVIEW_STEPS.findIndex((s) => s.isOutro);
+      const t = setTimeout(() => {
+        setPhase("questionPlayer");
+        setScreenText("");
+        setInterviewStep(outroIdx);
+        setPresenterFullText(
+          INTERVIEW_STEPS[outroIdx].getPresenterText(playerName),
+        );
+      }, 1100);
+      return () => clearTimeout(t);
+    }
+
+    if (interviewStep < 0) return;
     const step = INTERVIEW_STEPS[interviewStep];
     if (!step) return;
 
     if (step.isOutro) {
-      const t = setTimeout(() => setIsComplete(true), 2800);
+      // Korte leespauze na outro-tekst, dan naar eindscherm
+      const t = setTimeout(() => setIsComplete(true), 1400);
       return () => clearTimeout(t);
     }
 
@@ -1070,10 +1105,11 @@ export default function GameshowExperience() {
       setWheelResult("");
       setWheelSpinning(false);
       setWheelCanSpin(false);
+      // Korte leespauze na "Draai aan het rad", dan rad tonen
       const t = setTimeout(() => {
         setPhase("wheelZoom");
         setWheelCanSpin(true);
-      }, 600);
+      }, 800);
       return () => clearTimeout(t);
     }
 
@@ -1081,16 +1117,25 @@ export default function GameshowExperience() {
       const nextIdx = interviewStep + 1;
       const nextStep = INTERVIEW_STEPS[nextIdx];
       if (!nextStep) return;
+      // Korte leespauze na presentatortekst, dan volgende zin
       const t = setTimeout(() => {
         setInterviewStep(nextIdx);
         setPresenterFullText(nextStep.getPresenterText(playerName));
-      }, 1800);
+      }, 1100);
       return () => clearTimeout(t);
     }
 
-    setShowInput(true);
-    setTimeout(() => answerInputRef.current?.focus(), 60);
-  }, [typingDone, interviewStep, playerName, answers]);
+    // Invoer/keuzes alleen tonen als de speler nog níet heeft geantwoord op deze vraag
+    // (na submit verandert answers en zou dit effect anders opnieuw het invoer tonen)
+    if (answers[step.key] !== undefined && answers[step.key] !== "") return;
+
+    // Korte leespauze na vraag van presentator, dan invoerveld tonen
+    const t = setTimeout(() => {
+      setShowInput(true);
+      setTimeout(() => answerInputRef.current?.focus(), 60);
+    }, 700);
+    return () => clearTimeout(t);
+  }, [typingDone, interviewStep, playerName, answers, phase]);
 
   // ── Wheel spin complete ──
   const handleWheelComplete = useCallback(
@@ -1100,24 +1145,13 @@ export default function GameshowExperience() {
       setWheelResult(result);
       setAnswers((prev) => ({ ...prev, budget: result }));
       setScreenText(result);
-      // After result: move camera to TV screen (budget only on TV), hold there, then outro
-      const outroIdx = INTERVIEW_STEPS.findIndex((s) => s.isOutro);
+      // Camera naar TV; presentator zegt "dan mikken we op X...". Overgang naar outro gebeurt in effect na typing + leespauze.
       setTimeout(() => {
         setPhase("tvBudget");
-        // Presenter reacts to the chosen budget while camera is on the TV
         setPresenterFullText(
           `${playerName}, dan mikken we op ${result}. Daar kunnen we iets heel tofs mee bouwen!`,
         );
       }, 400);
-      // Hold camera on TV screen so budget is visible, then continue to outro
-      setTimeout(() => {
-        setPhase("questionPlayer");
-        setScreenText("");
-        setInterviewStep(outroIdx);
-        setPresenterFullText(
-          INTERVIEW_STEPS[outroIdx].getPresenterText(playerName),
-        );
-      }, 4500);
     },
     [playerName],
   );
@@ -1144,20 +1178,21 @@ export default function GameshowExperience() {
 
       setInputError("");
       setAnswers((prev) => ({ ...prev, [step.key]: trimmed }));
-      // Show player's answer briefly as a speech bubble
-      setPlayerReplyText(trimmed);
-      setShowPlayerReply(true);
-      setTimeout(() => {
-        setShowPlayerReply(false);
-      }, 2600);
       setCurrentInput("");
       setShowInput(false);
       setScreenText("");
+      // Speler-antwoord in bubble tonen; korte leespauze, dan naar volgende vraag
+      setPlayerReplyText(trimmed);
+      setShowPlayerReply(true);
       const nextIdx = interviewStep + 1;
       const nextStep = INTERVIEW_STEPS[nextIdx];
       if (!nextStep) return;
-      setInterviewStep(nextIdx);
-      setPresenterFullText(nextStep.getPresenterText(playerName));
+      setTimeout(() => {
+        setShowPlayerReply(false);
+        setTypingDone(false);
+        setInterviewStep(nextIdx);
+        setPresenterFullText(nextStep.getPresenterText(playerName));
+      }, 1800);
     },
     [interviewStep, playerName],
   );
@@ -1211,7 +1246,7 @@ export default function GameshowExperience() {
     setTimeout(() => {
       setInterviewStep(0);
       setPresenterFullText(INTERVIEW_STEPS[0].getPresenterText(trimmed));
-    }, 900);
+    }, 400);
   }, [nameInput]);
 
   const handleKeyDown = useCallback(
@@ -1282,6 +1317,30 @@ export default function GameshowExperience() {
             GAMESHOW
           </p>
         </div>
+
+        {/* ── Click-to-skip typewriter: alleen wanneer geen invoer/knop/keuzes zichtbaar ── */}
+        {showPresenter &&
+          !typingDone &&
+          !showInput &&
+          !(
+            phase === "wheelZoom" &&
+            wheelCanSpin &&
+            !wheelSpinning &&
+            !wheelResult
+          ) && (
+          <div
+            className="pointer-events-auto absolute inset-0 z-[5] cursor-pointer"
+            onClick={skipTyping}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && skipTyping()}
+            aria-label="Klik om te versnellen"
+          >
+            <p className="absolute bottom-24 left-1/2 -translate-x-1/2 font-pixel text-[9px] tracking-widest text-white/40">
+              Klik om te versnellen
+            </p>
+          </div>
+        )}
 
         {/* ── START screen ── */}
         {phase === "idle" && (

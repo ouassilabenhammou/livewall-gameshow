@@ -96,3 +96,26 @@ tijdens dat de camera op de tv scherm staat en wacht, laat de presentator iets z
 
 ik heb bij const BUDGET_BY_PROJECT gezet welke budget ranges bij elk project hoort. Dus als een speler bijvoorbeeld App als project kiest moet het rad altijd op de budget van App komen. Maar het rad moet wel de andere prijzen ook laten zien op het rad maar hij stopt alleen precies op de budget van de gekozen project, fix dit. Verder wil ik dat op het eind scherm dat als de speler het project wijzigt het goede budget ook meteen veranderd naar het budget die bij het gekozen project hoort.
 
+**Prompt 25**
+
+Dit is een contact formulier verwerkt in een interactive, gameified gameshow. Alleen ik wil dat de speler niet ergens lang moet wachten, dus zorg dat de flow van de gameshow overal super goed is en soepel verloopt.
+
+**Prompt 26**
+
+zorg dat de klik to skip niet kan en niet zichtbaar is wanneer er een invoerveld of knop of keuzes zichtbaar zijn.
+
+**Prompt 27**
+
+laat de tekst wel gewoon langzamer gaan zoals het eerst was. Skip niet verwijderen. Na elk stukje tekst van de presentator en de speler, wacht dan heel even zodat het wel leesbaar is. Doe dit voor alle tekst die de presentator en de speler zegt.
+
+**Prompt 28**
+
+nadat de speler de invoer heeft gedaan en de speler het antwoord in zijn textbox zegt dan opeens verschijnt de invoer weer voor korte tijd dit hoort niet de invoer moet maar 1 keer verschijnen en nadat de speler heeft gekozen dan verdwijnt hij en komt niet terug.
+
+**Prompt 29**
+
+het invoer komt alsnog terug nadat de speler klaar is met praten wat niet hoort. De invoer en keuzes moeten niet terug komen nadat de speler begint met praten. En pas de volgende invoer verschijnt pas weer nadat de presentator iets vraagt aan de speler weer.
+
+**Prompt 30**
+
+de tekst van de presentator "dan mikken we op. Daar kunnen we iets heel tofs mee bouwen!" blijft niet lang in beeld, fix dit zoals de andere texts werken in de andere rondes.

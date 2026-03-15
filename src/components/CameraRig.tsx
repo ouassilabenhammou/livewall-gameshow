@@ -59,13 +59,13 @@ const CAMERA_TARGETS: Record<GamePhase, CameraTarget> = {
   wheelZoom: {
     position: new THREE.Vector3(-3.2, 2.5, 4.6),
     lookAt: new THREE.Vector3(-2.8, 1.85, -0.2),
-    lerpSpeed: 0.02,
+    lerpSpeed: 0.038,
   },
   // Focus on TV screen so budget text is clearly visible
   tvBudget: {
     position: new THREE.Vector3(0, 3.6, 7.5),
     lookAt: new THREE.Vector3(-0.3, 1.8, -1.2),
-    lerpSpeed: 0.02,
+    lerpSpeed: 0.04,
   },
 };
 
