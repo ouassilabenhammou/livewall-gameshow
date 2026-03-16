@@ -131,3 +131,7 @@ maak de contact knop meer in de stijl van livewall en ook met hover functie en k
 **Prompt 33**
 
 dit moet ook de eerste pagina zijn die de speler ziet.
+
+**Prompt 34**
+
+wanneer de speler op het einde van de gameshow op verzenden klik, zorg dat er dan een succes bericht komt te staan of een error met details. Als het succesvol verzonden is dan stuur de speler terug naar homepagina.

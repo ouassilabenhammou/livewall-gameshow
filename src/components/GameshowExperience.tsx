@@ -1023,6 +1023,9 @@ export default function GameshowExperience() {
 
   // ── Homepage / send state ──
   const [showHomepage, setShowHomepage] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState("");
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -1235,6 +1238,9 @@ export default function GameshowExperience() {
     setInputError("");
     setWheelError("");
     setEditError("");
+    setIsSubmitting(false);
+    setSubmitError("");
+    setSubmitSuccess("");
   }, []);
 
   // ── Start ──
@@ -1774,12 +1780,60 @@ export default function GameshowExperience() {
                   ))}
 
                   <button
-                    onClick={() => setShowHomepage(true)}
-                    disabled={!!editingKey}
+                    onClick={async () => {
+                      if (editingKey) {
+                        setSubmitError("Rond eerst je bewerking af voordat je verzendt.");
+                        return;
+                      }
+                      if (!answers.email || !answers.company || !answers.projectType || !answers.budget) {
+                        setSubmitError(
+                          "Niet alle velden zijn ingevuld. Controleer e‑mail, bedrijf, project en budget.",
+                        );
+                        return;
+                      }
+                      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                      if (!emailPattern.test(answers.email)) {
+                        setSubmitError(
+                          "Het e-mailadres lijkt niet geldig. Gebruik bijv. naam@bedrijf.nl.",
+                        );
+                        return;
+                      }
+
+                      try {
+                        setSubmitError("");
+                        setSubmitSuccess("");
+                        setIsSubmitting(true);
+
+                        // Hier zou normaal een API‑call komen om de lead te versturen.
+                        // Voor nu simuleren we een korte wachttijd.
+                        await new Promise((resolve) => setTimeout(resolve, 900));
+
+                        setSubmitSuccess("Je gegevens zijn succesvol verzonden. We sturen je terug naar de homepage.");
+                        // Korte delay zodat de speler het bericht kan lezen
+                        setTimeout(() => {
+                          setShowHomepage(true);
+                        }, 1800);
+                      } catch (err) {
+                        setSubmitError(
+                          `Er ging iets mis bij het verzenden van je gegevens. Probeer het opnieuw of neem direct contact op. ${
+                            err instanceof Error ? `Details: ${err.message}` : ""
+                          }`,
+                        );
+                      } finally {
+                        setIsSubmitting(false);
+                      }
+                    }}
+                    disabled={!!editingKey || isSubmitting}
                     className="font-pixel mt-5 w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-3.5 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    VERZENDEN →
+                    {isSubmitting ? "VERZENDEN..." : "VERZENDEN →"}
                   </button>
+                  {submitError && (
+                    <p className="mt-2 text-xs text-red-400">{submitError}</p>
+                  )}
+                  {submitSuccess && (
+                    <p className="mt-2 text-xs text-[#c8ff00]">{submitSuccess}</p>
+                  )}
                 </div>
               </div>
             </div>
