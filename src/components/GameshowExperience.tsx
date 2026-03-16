@@ -655,6 +655,7 @@ function Scene({
   showPlayerReply,
   screenText,
   wheelBudgets,
+  wheelTargetBudget,
   wheelSpinning,
   onWheelComplete,
   speaker,
@@ -667,6 +668,7 @@ function Scene({
   showPlayerReply: boolean;
   screenText: string;
   wheelBudgets: string[];
+  wheelTargetBudget: string;
   wheelSpinning: boolean;
   onWheelComplete: (result: string) => void;
   speaker: Speaker;
@@ -685,9 +687,10 @@ function Scene({
       <RoundStage active={!isIdle} />
       <TVScreen active={screenActive} budgetText={screenText || undefined} />
       <Audience />
-      {showWheel && wheelBudgets.length > 0 && (
+      {showWheel && wheelBudgets.length > 0 && wheelTargetBudget && (
         <BudgetWheel
           budgets={wheelBudgets}
+          targetBudget={wheelTargetBudget}
           spinning={wheelSpinning}
           onSpinComplete={onWheelComplete}
         />
@@ -788,61 +791,31 @@ const PROJECT_TYPES = [
 
 const BUDGET_BY_PROJECT: Record<string, string[]> = {
   Website: [
-    "€3k–€8k",
-    "€8k–€15k",
-    "€15k–€30k",
-    "€30k–€50k",
-    "€50k–€75k",
-    "€75k+",
+    "€5k–€10k",
   ],
   App: [
-    "€10k–€25k",
-    "€25k–€50k",
-    "€50k–€75k",
-    "€75k–€100k",
-    "€100k–€150k",
-    "€150k+",
+    "€10k–€20k",
   ],
   Campagne: [
-    "€2k–€5k",
-    "€5k–€12k",
-    "€12k–€25k",
-    "€25k–€50k",
-    "€50k–€75k",
-    "€75k+",
+    "€20k–€30k",
   ],
   Branding: [
-    "€2k–€5k",
-    "€5k–€10k",
-    "€10k–€20k",
-    "€20k–€35k",
-    "€35k–€50k",
-    "€50k+",
+    "€30k–€40k",
   ],
   "E-commerce": [
-    "€5k–€15k",
-    "€15k–€30k",
-    "€30k–€60k",
-    "€60k–€100k",
-    "€100k–€150k",
-    "€150k+",
+    "€40k–€50k",
   ],
   Anders: [
-    "€2k–€10k",
-    "€10k–€25k",
-    "€25k–€50k",
-    "€50k–€100k",
-    "€100k–€150k",
-    "€150k+",
+    "€50k+",
   ],
 };
 const DEFAULT_BUDGETS = [
-  "€3k–€10k",
-  "€10k–€25k",
-  "€25k–€50k",
-  "€50k–€100k",
-  "€100k–€150k",
-  "€150k+",
+  "€5k–€10k",
+  "€10k–€20k",
+  "€20k–€30k",
+  "€30k–€40k",
+  "€40k–€50k",
+  "€50k+",
 ];
 
 // ─── Budget wheel ────────────────────────────────────────────────────────────
@@ -866,10 +839,13 @@ const WHEEL_TEXT_COLORS = [
 
 function BudgetWheel({
   budgets,
+  targetBudget,
   spinning,
   onSpinComplete,
 }: {
   budgets: string[];
+  /** Budget to land on (must be one of budgets); wheel shows all but stops here */
+  targetBudget: string;
   spinning: boolean;
   onSpinComplete: (result: string) => void;
 }) {
@@ -895,7 +871,10 @@ function BudgetWheel({
 
   useEffect(() => {
     if (!spinning) return;
-    const targetIdx = Math.floor(Math.random() * segCount);
+    const targetIdx = (() => {
+      const idx = budgets.indexOf(targetBudget);
+      return idx >= 0 ? idx : Math.floor(Math.random() * segCount);
+    })();
     // Compute final angle so targetIdx lands at 12 o'clock (π/2)
     let stop = Math.PI / 2 - targetIdx * segAngle - segAngle / 2;
     while (stop < 0) stop += Math.PI * 2;
@@ -908,7 +887,7 @@ function BudgetWheel({
       targetIdx,
       done: false,
     };
-  }, [spinning, segCount, segAngle]);
+  }, [spinning, segCount, segAngle, budgets, targetBudget]);
 
   useFrame((state) => {
     const s = spinRef.current;
@@ -1031,6 +1010,7 @@ export default function GameshowExperience() {
 
   // ── Wheel state ──
   const [wheelBudgets, setWheelBudgets] = useState<string[]>([]);
+  const [wheelTargetBudget, setWheelTargetBudget] = useState("");
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelResult, setWheelResult] = useState("");
   const [wheelCanSpin, setWheelCanSpin] = useState(false);
@@ -1042,55 +1022,102 @@ export default function GameshowExperience() {
   const [editError, setEditError] = useState("");
 
   // ── Homepage / send state ──
-  const [showHomepage, setShowHomepage] = useState(false);
+  const [showHomepage, setShowHomepage] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState("");
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
   const nameInputRef = useRef<HTMLInputElement>(null);
   const answerInputRef = useRef<HTMLInputElement>(null);
+  const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Typewriter ──
+  // ── Typewriter (faster + skip on click) ──
+  const skipTyping = useCallback(() => {
+    if (typingIntervalRef.current && presenterFullText) {
+      clearInterval(typingIntervalRef.current);
+      typingIntervalRef.current = null;
+      setPresenterTypedText(presenterFullText);
+      setTypingDone(true);
+    }
+  }, [presenterFullText]);
+
   useEffect(() => {
     if (!presenterFullText) return;
     let i = 0;
     setPresenterTypedText("");
     setTypingDone(false);
     setShowInput(false);
-    const interval = setInterval(() => {
+    typingIntervalRef.current = setInterval(() => {
       if (i <= presenterFullText.length) {
         setPresenterTypedText(presenterFullText.slice(0, i));
         i++;
       } else {
-        clearInterval(interval);
+        if (typingIntervalRef.current) {
+          clearInterval(typingIntervalRef.current);
+          typingIntervalRef.current = null;
+        }
         setTypingDone(true);
       }
     }, 50);
-    return () => clearInterval(interval);
+    return () => {
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current);
+        typingIntervalRef.current = null;
+      }
+    };
   }, [presenterFullText]);
 
   // ── After typing done ──
   useEffect(() => {
-    if (!typingDone || interviewStep < 0) return;
+    if (!typingDone) return;
+
+    // TV-budget: presentator heeft "dan mikken we op X..." uitgetypt → leespauze, dan naar outro (zoals andere rondes)
+    if (phase === "tvBudget" && answers.budget) {
+      const outroIdx = INTERVIEW_STEPS.findIndex((s) => s.isOutro);
+      const t = setTimeout(() => {
+        setPhase("questionPlayer");
+        setScreenText("");
+        setInterviewStep(outroIdx);
+        setPresenterFullText(
+          INTERVIEW_STEPS[outroIdx].getPresenterText(playerName),
+        );
+      }, 1100);
+      return () => clearTimeout(t);
+    }
+
+    if (interviewStep < 0) return;
     const step = INTERVIEW_STEPS[interviewStep];
     if (!step) return;
 
     if (step.isOutro) {
-      const t = setTimeout(() => setIsComplete(true), 2800);
+      // Korte leespauze na outro-tekst, dan naar eindscherm
+      const t = setTimeout(() => setIsComplete(true), 1400);
       return () => clearTimeout(t);
     }
 
-    // Wheel step: camera zooms to wheel, spin starts
+    // Wheel step: camera zooms to wheel, spin starts (only when not yet completed)
     if (step.isWheel) {
+      if (answers.budget) return; // Already spun; handleWheelComplete owns phase flow
       const projectType = answers.projectType ?? "";
-      const budgets = BUDGET_BY_PROJECT[projectType] ?? DEFAULT_BUDGETS;
-      setWheelBudgets(budgets);
+      const projectBudgets = BUDGET_BY_PROJECT[projectType] ?? DEFAULT_BUDGETS;
+      const targetBudget = projectBudgets[0] ?? DEFAULT_BUDGETS[0];
+      setWheelBudgets(DEFAULT_BUDGETS);
+      setWheelTargetBudget(targetBudget);
       setWheelResult("");
       setWheelSpinning(false);
+      // Al in wheelZoom? Niet opnieuw resetten anders flasht de knop (effect draait op phase-change).
+      if (phase === "wheelZoom") {
+        if (!wheelResult && !wheelSpinning) setWheelCanSpin(true);
+        return;
+      }
       setWheelCanSpin(false);
+      // Korte leespauze na "Draai aan het rad", dan rad tonen
       const t = setTimeout(() => {
         setPhase("wheelZoom");
         setWheelCanSpin(true);
-      }, 600);
+      }, 800);
       return () => clearTimeout(t);
     }
 
@@ -1098,16 +1125,25 @@ export default function GameshowExperience() {
       const nextIdx = interviewStep + 1;
       const nextStep = INTERVIEW_STEPS[nextIdx];
       if (!nextStep) return;
+      // Korte leespauze na presentatortekst, dan volgende zin
       const t = setTimeout(() => {
         setInterviewStep(nextIdx);
         setPresenterFullText(nextStep.getPresenterText(playerName));
-      }, 1800);
+      }, 1100);
       return () => clearTimeout(t);
     }
 
-    setShowInput(true);
-    setTimeout(() => answerInputRef.current?.focus(), 60);
-  }, [typingDone, interviewStep, playerName, answers]);
+    // Invoer/keuzes alleen tonen als de speler nog níet heeft geantwoord op deze vraag
+    // (na submit verandert answers en zou dit effect anders opnieuw het invoer tonen)
+    if (answers[step.key] !== undefined && answers[step.key] !== "") return;
+
+    // Korte leespauze na vraag van presentator, dan invoerveld tonen
+    const t = setTimeout(() => {
+      setShowInput(true);
+      setTimeout(() => answerInputRef.current?.focus(), 60);
+    }, 700);
+    return () => clearTimeout(t);
+  }, [typingDone, interviewStep, playerName, answers, phase]);
 
   // ── Wheel spin complete ──
   const handleWheelComplete = useCallback(
@@ -1117,21 +1153,13 @@ export default function GameshowExperience() {
       setWheelResult(result);
       setAnswers((prev) => ({ ...prev, budget: result }));
       setScreenText(result);
-      // After result: first move camera to TV screen, then advance to outro
-      const outroIdx = INTERVIEW_STEPS.findIndex((s) => s.isOutro);
-      // Short pause on the wheel result overlay
+      // Camera naar TV; presentator zegt "dan mikken we op X...". Overgang naar outro gebeurt in effect na typing + leespauze.
       setTimeout(() => {
         setPhase("tvBudget");
-      }, 800);
-      // Then move back to presenter for outro
-      setTimeout(() => {
-        setPhase("questionPlayer");
-        setScreenText("");
-        setInterviewStep(outroIdx);
         setPresenterFullText(
-          INTERVIEW_STEPS[outroIdx].getPresenterText(playerName),
+          `${playerName}, dan mikken we op ${result}. Daar kunnen we iets heel tofs mee bouwen!`,
         );
-      }, 4000);
+      }, 400);
     },
     [playerName],
   );
@@ -1158,20 +1186,21 @@ export default function GameshowExperience() {
 
       setInputError("");
       setAnswers((prev) => ({ ...prev, [step.key]: trimmed }));
-      // Show player's answer briefly as a speech bubble
-      setPlayerReplyText(trimmed);
-      setShowPlayerReply(true);
-      setTimeout(() => {
-        setShowPlayerReply(false);
-      }, 2600);
       setCurrentInput("");
       setShowInput(false);
       setScreenText("");
+      // Speler-antwoord in bubble tonen; korte leespauze, dan naar volgende vraag
+      setPlayerReplyText(trimmed);
+      setShowPlayerReply(true);
       const nextIdx = interviewStep + 1;
       const nextStep = INTERVIEW_STEPS[nextIdx];
       if (!nextStep) return;
-      setInterviewStep(nextIdx);
-      setPresenterFullText(nextStep.getPresenterText(playerName));
+      setTimeout(() => {
+        setShowPlayerReply(false);
+        setTypingDone(false);
+        setInterviewStep(nextIdx);
+        setPresenterFullText(nextStep.getPresenterText(playerName));
+      }, 1800);
     },
     [interviewStep, playerName],
   );
@@ -1197,6 +1226,7 @@ export default function GameshowExperience() {
     setIsComplete(false);
     setScreenText("");
     setWheelBudgets([]);
+    setWheelTargetBudget("");
     setWheelSpinning(false);
     setWheelResult("");
     setWheelCanSpin(false);
@@ -1208,6 +1238,9 @@ export default function GameshowExperience() {
     setInputError("");
     setWheelError("");
     setEditError("");
+    setIsSubmitting(false);
+    setSubmitError("");
+    setSubmitSuccess("");
   }, []);
 
   // ── Start ──
@@ -1224,7 +1257,7 @@ export default function GameshowExperience() {
     setTimeout(() => {
       setInterviewStep(0);
       setPresenterFullText(INTERVIEW_STEPS[0].getPresenterText(trimmed));
-    }, 900);
+    }, 400);
   }, [nameInput]);
 
   const handleKeyDown = useCallback(
@@ -1241,14 +1274,11 @@ export default function GameshowExperience() {
   );
 
   const currentStep = INTERVIEW_STEPS[interviewStep];
-  const isQuestionPhase = phase === "questionPlayer" || phase === "wheelZoom";
+  const isQuestionPhase =
+    phase === "questionPlayer" ||
+    phase === "wheelZoom" ||
+    phase === "tvBudget";
   const showPresenter = isQuestionPhase && interviewStep >= 0 && !isComplete;
-  // Name chip: only during camera travel (not question or idle)
-  const showNameChip =
-    phase !== "idle" &&
-    phase !== "questionPlayer" &&
-    phase !== "wheelZoom" &&
-    playerName;
 
   // Determine who is "aan het woord" for the spotlight:
   // - during input we highlight the player
@@ -1276,6 +1306,7 @@ export default function GameshowExperience() {
           showPlayerReply={showPlayerReply}
           screenText={screenText}
           wheelBudgets={wheelBudgets}
+          wheelTargetBudget={wheelTargetBudget}
           wheelSpinning={wheelSpinning}
           onWheelComplete={handleWheelComplete}
           speaker={speaker}
@@ -1297,6 +1328,30 @@ export default function GameshowExperience() {
             GAMESHOW
           </p>
         </div>
+
+        {/* ── Click-to-skip typewriter: alleen wanneer geen invoer/knop/keuzes zichtbaar ── */}
+        {showPresenter &&
+          !typingDone &&
+          !showInput &&
+          !(
+            phase === "wheelZoom" &&
+            wheelCanSpin &&
+            !wheelSpinning &&
+            !wheelResult
+          ) && (
+          <div
+            className="pointer-events-auto absolute inset-0 z-[5] cursor-pointer"
+            onClick={skipTyping}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && skipTyping()}
+            aria-label="Klik om te versnellen"
+          >
+            <p className="absolute bottom-24 left-1/2 -translate-x-1/2 font-pixel text-[9px] tracking-widest text-white/40">
+              Klik om te versnellen
+            </p>
+          </div>
+        )}
 
         {/* ── START screen ── */}
         {phase === "idle" && (
@@ -1338,18 +1393,6 @@ export default function GameshowExperience() {
               >
                 START →
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Camera travel name chip ── */}
-        {showNameChip && (
-          <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2">
-            <div className="animate-fade-in-up flex items-center gap-2 border border-white/10 bg-black/70 px-5 py-2 backdrop-blur-md">
-              <div className="h-1.5 w-1.5 rounded-full bg-[#c8ff00]" />
-              <span className="font-pixel text-[8px] tracking-wider text-[#c8ff00]">
-                {playerName.toUpperCase()}
-              </span>
             </div>
           </div>
         )}
@@ -1525,29 +1568,6 @@ export default function GameshowExperience() {
             </div>
           )}
 
-        {/* ── Wheel spinning banner ── */}
-        {phase === "wheelZoom" && wheelSpinning && !wheelResult && (
-          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <p className="font-pixel animate-pulse text-[11px] tracking-[0.3em] text-[#c8ff00]/80">
-              HET RAD DRAAIT...
-            </p>
-          </div>
-        )}
-
-        {/* ── Wheel result banner ── */}
-        {wheelResult && phase === "wheelZoom" && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="rounded-sm bg-black/70 px-10 py-6 text-center shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-              <p className="font-pixel mb-3 text-[10px] tracking-[0.4em] text-[#c8ff00]">
-                BUDGET
-              </p>
-              <p className="font-pixel text-5xl text-white drop-shadow-[0_0_25px_rgba(0,0,0,0.9)]">
-                {wheelResult}
-              </p>
-            </div>
-          </div>
-        )}
-
         {/* ── Complete / reward screen ── */}
         {isComplete && (
           <div className="pointer-events-auto absolute inset-0 overflow-y-auto bg-black/88 backdrop-blur-sm">
@@ -1638,9 +1658,14 @@ export default function GameshowExperience() {
                                 <button
                                   key={pt}
                                   onClick={() => {
+                                    const projectBudgets =
+                                      BUDGET_BY_PROJECT[pt] ?? DEFAULT_BUDGETS;
+                                    const newBudget =
+                                      projectBudgets[0] ?? DEFAULT_BUDGETS[0];
                                     setAnswers((prev) => ({
                                       ...prev,
                                       [key]: pt,
+                                      budget: newBudget,
                                     }));
                                     setEditError("");
                                     setEditingKey(null);
@@ -1755,12 +1780,60 @@ export default function GameshowExperience() {
                   ))}
 
                   <button
-                    onClick={() => setShowHomepage(true)}
-                    disabled={!!editingKey}
+                    onClick={async () => {
+                      if (editingKey) {
+                        setSubmitError("Rond eerst je bewerking af voordat je verzendt.");
+                        return;
+                      }
+                      if (!answers.email || !answers.company || !answers.projectType || !answers.budget) {
+                        setSubmitError(
+                          "Niet alle velden zijn ingevuld. Controleer e‑mail, bedrijf, project en budget.",
+                        );
+                        return;
+                      }
+                      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                      if (!emailPattern.test(answers.email)) {
+                        setSubmitError(
+                          "Het e-mailadres lijkt niet geldig. Gebruik bijv. naam@bedrijf.nl.",
+                        );
+                        return;
+                      }
+
+                      try {
+                        setSubmitError("");
+                        setSubmitSuccess("");
+                        setIsSubmitting(true);
+
+                        // Hier zou normaal een API‑call komen om de lead te versturen.
+                        // Voor nu simuleren we een korte wachttijd.
+                        await new Promise((resolve) => setTimeout(resolve, 900));
+
+                        setSubmitSuccess("Je gegevens zijn succesvol verzonden. We sturen je terug naar de homepage.");
+                        // Korte delay zodat de speler het bericht kan lezen
+                        setTimeout(() => {
+                          setShowHomepage(true);
+                        }, 1800);
+                      } catch (err) {
+                        setSubmitError(
+                          `Er ging iets mis bij het verzenden van je gegevens. Probeer het opnieuw of neem direct contact op. ${
+                            err instanceof Error ? `Details: ${err.message}` : ""
+                          }`,
+                        );
+                      } finally {
+                        setIsSubmitting(false);
+                      }
+                    }}
+                    disabled={!!editingKey || isSubmitting}
                     className="font-pixel mt-5 w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-3.5 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    VERZENDEN →
+                    {isSubmitting ? "VERZENDEN..." : "VERZENDEN →"}
                   </button>
+                  {submitError && (
+                    <p className="mt-2 text-xs text-red-400">{submitError}</p>
+                  )}
+                  {submitSuccess && (
+                    <p className="mt-2 text-xs text-[#c8ff00]">{submitSuccess}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1800,20 +1873,20 @@ export default function GameshowExperience() {
         <div className="absolute inset-0 z-40 flex flex-col">
           <div className="relative h-full w-full">
             <Image
-              src="/livewall-homepage.png"
+              src="/livewall-homepage-v2.png"
               alt="Livewall Homepage"
               fill
               className="object-cover object-top"
               priority
             />
           </div>
-          {/* Contact button overlay */}
-          <div className="absolute inset-0 flex items-end justify-center pb-16">
+          {/* Contact button overlay – Livewall-stijl, rechts in navbar */}
+          <div className="absolute inset-0 flex items-start justify-end pt-[2.5rem] pr-[4rem] md:pt-[2.75rem] md:pr-[4.5rem]">
             <button
               onClick={handleReset}
-              className="font-pixel border-2 border-[#c8ff00] bg-[#c8ff00] px-10 py-4 text-sm text-black shadow-[0_0_30px_rgba(200,255,0,0.4)] transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
+              className="font-pixel rounded-lg bg-[#c8ff00] px-5 py-2.5 text-sm font-medium tracking-wide text-black shadow-[0_0_20px_rgba(200,255,0,0.45)] transition-all duration-200 hover:bg-[#0a0a0a] hover:text-[#c8ff00] hover:shadow-[0_0_24px_rgba(200,255,0,0.5)] active:scale-95"
             >
-              NEEM CONTACT OP →
+              CONTACT
             </button>
           </div>
         </div>
