@@ -19,7 +19,7 @@ const TURN_ANGLE = Math.PI / 9;
 // ─── TV screen — shows question text during game ─────────────────────────────
 
 function TVScreenLogo() {
-  const texture = useTexture("/livewall-logo.svg");
+  const texture = useTexture("/images/livewall-logo.svg");
   return (
     <mesh position={[0, 0, 0.072]} scale={[0.8, 0.8, 0.5]}>
       <planeGeometry args={[4.5, 1.0]} />
@@ -1873,7 +1873,7 @@ export default function GameshowExperience() {
         <div className="absolute inset-0 z-40 flex flex-col">
           <div className="relative h-full w-full">
             <Image
-              src="/livewall-homepage-v2.png"
+              src="/images/livewall-homepage-v2.png"
               alt="Livewall Homepage"
               fill
               className="object-cover object-top"
