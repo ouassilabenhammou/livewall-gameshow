@@ -135,3 +135,15 @@ dit moet ook de eerste pagina zijn die de speler ziet.
 **Prompt 34**
 
 wanneer de speler op het einde van de gameshow op verzenden klik, zorg dat er dan een succes bericht komt te staan of een error met details. Als het succesvol verzonden is dan stuur de speler terug naar homepagina.
+
+**Prompt 35**
+
+update de readme.md en zorg dat het een mooi duidelijk overzicht geeft, in het nederlands en zonder moeilijke woorden. Dit is een schoolproject voor het bedrijf "Livewall.nl" en we moeten een interactieve, gameified contactformulier bouwen voor hun website. We hebben nog geen punten of beloning systeem, maar gaan we nog naar kijken. Het is nu vooral de speler komt op de website van livewall klikt op contact en komt dan in de gameshow terecht waar hij zijn naam moet invullen, vervolgens de presentator praat en vragen stelt over wat zijn email etc is, en we hebben een rad die de budget laat zien van de gekozen project door de speler en ten slotte kan de speler alle info nog een keer bekijken en bewerken indien nodig en dan versturen naar livewall. We gaan dus nog wel kijken naar een punten systeem ofzo iets en meer animaties.
+
+**Prompt 36**
+
+Voeg uitgebreidere tech stukje dus ook hoe iemand dit runt enzo en welke technieken zijn gebruikt etc.
+
+**Prompt 37**
+
+zorg dat alle techniek die we ook echt gebruiken in dit project er staat en iets wat we niet gebruiken er ook dus niet in staat. Maak de beschijving van de gameshow ook wat duidelijker en meer een beschrijving dan een stap voor stap uitleg. De project starten stukje is wel goed. De structuur stukje zorg dat alle belangrijke mappen er staan met kleine uitleg.
