@@ -654,10 +654,6 @@ function Scene({
   playerReplyText,
   showPlayerReply,
   screenText,
-  wheelBudgets,
-  wheelTargetBudget,
-  wheelSpinning,
-  onWheelComplete,
   speaker,
 }: {
   phase: GamePhase;
@@ -667,15 +663,10 @@ function Scene({
   playerReplyText: string;
   showPlayerReply: boolean;
   screenText: string;
-  wheelBudgets: string[];
-  wheelTargetBudget: string;
-  wheelSpinning: boolean;
-  onWheelComplete: (result: string) => void;
   speaker: Speaker;
 }) {
   const screenActive = phase !== "idle" && !!playerName;
   const isIdle = phase === "idle";
-  const showWheel = phase === "wheelZoom" || wheelSpinning;
   const lightsActive = !isIdle;
 
   return (
@@ -687,14 +678,6 @@ function Scene({
       <RoundStage active={!isIdle} />
       <TVScreen active={screenActive} budgetText={screenText || undefined} />
       <Audience />
-      {showWheel && wheelBudgets.length > 0 && wheelTargetBudget && (
-        <BudgetWheel
-          budgets={wheelBudgets}
-          targetBudget={wheelTargetBudget}
-          spinning={wheelSpinning}
-          onSpinComplete={onWheelComplete}
-        />
-      )}
       <fog attach="fog" args={["#000000", 12, 26]} />
 
       {/* Player — on round stage, rotated toward presenter */}
@@ -731,6 +714,144 @@ interface InterviewStep {
   showOnScreen?: boolean;
 }
 
+type LivewallCategory =
+  | "Branded Games"
+  | "Interactieve Campagnes"
+  | "Platforms & Apps"
+  | "Gamification & Loyalty"
+  | "Events & Experiences"
+  | "Community & Engagement";
+
+type BudgetRangeId = "2000-5000" | "5000-10000" | "10000-20000" | "20000+";
+
+const LIVEWALL_CATEGORIES: { id: LivewallCategory; title: LivewallCategory }[] =
+  [
+    { id: "Branded Games", title: "Branded Games" },
+    { id: "Interactieve Campagnes", title: "Interactieve Campagnes" },
+    { id: "Platforms & Apps", title: "Platforms & Apps" },
+    { id: "Gamification & Loyalty", title: "Gamification & Loyalty" },
+    { id: "Events & Experiences", title: "Events & Experiences" },
+    { id: "Community & Engagement", title: "Community & Engagement" },
+  ];
+
+const BUDGET_RANGES: { id: BudgetRangeId; label: string; hint: string }[] = [
+  { id: "2000-5000", label: "€2.000 – €5.000", hint: "Klein / MVP" },
+  { id: "5000-10000", label: "€5.000 – €10.000", hint: "Compact" },
+  { id: "10000-20000", label: "€10.000 – €20.000", hint: "Uitgebreid" },
+  { id: "20000+", label: "€20.000+", hint: "Groot" },
+];
+
+type PastProject = {
+  id: string;
+  title: string;
+  category: LivewallCategory;
+  budgetRange: BudgetRangeId;
+  tagline: string;
+};
+
+const PAST_PROJECTS: PastProject[] = [
+  {
+    id: "bg-arcade-quiz",
+    title: "Branded arcade quiz experience",
+    category: "Branded Games",
+    budgetRange: "5000-10000",
+    tagline: "Snel spelconcept met merk-identiteit en score/leaderboard.",
+  },
+  {
+    id: "bg-webgame-launch",
+    title: "Webgame voor productlancering",
+    category: "Branded Games",
+    budgetRange: "10000-20000",
+    tagline: "Browsergame met rewards en social share loops.",
+  },
+  {
+    id: "ic-scratch-win",
+    title: "Interactieve scratch & win campagne",
+    category: "Interactieve Campagnes",
+    budgetRange: "2000-5000",
+    tagline: "Korte activatie met instant-win mechanics en lead capture.",
+  },
+  {
+    id: "ic-ugc-challenge",
+    title: "UGC challenge met live ranking",
+    category: "Interactieve Campagnes",
+    budgetRange: "20000+",
+    tagline: "Meerdere weken campagne met content submissions en moderatie.",
+  },
+  {
+    id: "pa-event-companion",
+    title: "Event companion webapp",
+    category: "Platforms & Apps",
+    budgetRange: "10000-20000",
+    tagline: "Interactie, planning en push-achtige updates in 1 flow.",
+  },
+  {
+    id: "pa-microsite-platform",
+    title: "Campagneplatform + microsites",
+    category: "Platforms & Apps",
+    budgetRange: "20000+",
+    tagline: "Multi-page platform met beheer en herbruikbare modules.",
+  },
+  {
+    id: "gl-stamp-card",
+    title: "Digitale stempelkaart",
+    category: "Gamification & Loyalty",
+    budgetRange: "5000-10000",
+    tagline: "Progressie, beloningen en eenvoudige segmentatie.",
+  },
+  {
+    id: "gl-tiered-rewards",
+    title: "Loyalty tiers & rewards",
+    category: "Gamification & Loyalty",
+    budgetRange: "20000+",
+    tagline: "Levels, challenges en integratie met bestaande systemen.",
+  },
+  {
+    id: "ee-live-activation",
+    title: "Live event activation wall",
+    category: "Events & Experiences",
+    budgetRange: "10000-20000",
+    tagline: "Publieksinteractie op locatie met real-time visuals.",
+  },
+  {
+    id: "ee-stand-experience",
+    title: "Beursstand experience game",
+    category: "Events & Experiences",
+    budgetRange: "20000+",
+    tagline: "Custom experience met meerdere interactiepunten en content.",
+  },
+  {
+    id: "ce-community-quest",
+    title: "Community quest met badges",
+    category: "Community & Engagement",
+    budgetRange: "5000-10000",
+    tagline: "Badges, challenges en engagement loops voor leden.",
+  },
+  {
+    id: "ce-fan-hub",
+    title: "Fan hub met challenges",
+    category: "Community & Engagement",
+    budgetRange: "10000-20000",
+    tagline: "Content hub + gamified deelname en leaderboard.",
+  },
+];
+
+function getSimilarProjects(category: LivewallCategory, budgetRange: BudgetRangeId) {
+  const exact = PAST_PROJECTS.filter(
+    (p) => p.category === category && p.budgetRange === budgetRange,
+  );
+  if (exact.length >= 3) return exact.slice(0, 3);
+  const sameCategory = PAST_PROJECTS.filter((p) => p.category === category);
+  const sameBudget = PAST_PROJECTS.filter((p) => p.budgetRange === budgetRange);
+  const merged = [...exact];
+  for (const p of [...sameCategory, ...sameBudget]) {
+    if (merged.some((m) => m.id === p.id)) continue;
+    merged.push(p);
+    if (merged.length >= 3) break;
+  }
+  return merged.slice(0, 3);
+}
+
 const INTERVIEW_STEPS: InterviewStep[] = [
   {
     key: "intro",
@@ -757,19 +878,28 @@ const INTERVIEW_STEPS: InterviewStep[] = [
     showOnScreen: true,
   },
   {
-    key: "projectType",
-    label: "TYPE PROJECT",
-    getPresenterText: () => "Wat voor type project zoek je?",
+    key: "category",
+    label: "KIES EEN CATEGORIE",
+    getPresenterText: () =>
+      "Kies eerst waar je interesse ligt. Pak een categorie van het bord!",
     hasInput: true,
     isMultipleChoice: true,
     showOnScreen: true,
   },
   {
-    key: "budget",
+    key: "budgetRange",
+    label: "KIES JOUW BUDGET",
     getPresenterText: () =>
-      "Top keuze! Laten we jouw budget bepalen. Draai aan het rad!",
-    hasInput: false,
-    isWheel: true,
+      "Nice! En in welke prijsgroep valt jouw project ongeveer?",
+    hasInput: true,
+    isMultipleChoice: true,
+    showOnScreen: true,
+  },
+  {
+    key: "examples",
+    getPresenterText: () =>
+      "Check! Hieronder zie je een paar soortgelijke projecten die we eerder hebben gemaakt.",
+    hasInput: true,
   },
   {
     key: "outro",
@@ -780,213 +910,7 @@ const INTERVIEW_STEPS: InterviewStep[] = [
   },
 ];
 
-const PROJECT_TYPES = [
-  "Website",
-  "App",
-  "Campagne",
-  "Branding",
-  "E-commerce",
-  "Anders",
-];
-
-const BUDGET_BY_PROJECT: Record<string, string[]> = {
-  Website: [
-    "€5k–€10k",
-  ],
-  App: [
-    "€10k–€20k",
-  ],
-  Campagne: [
-    "€20k–€30k",
-  ],
-  Branding: [
-    "€30k–€40k",
-  ],
-  "E-commerce": [
-    "€40k–€50k",
-  ],
-  Anders: [
-    "€50k+",
-  ],
-};
-const DEFAULT_BUDGETS = [
-  "€5k–€10k",
-  "€10k–€20k",
-  "€20k–€30k",
-  "€30k–€40k",
-  "€40k–€50k",
-  "€50k+",
-];
-
-// ─── Budget wheel ────────────────────────────────────────────────────────────
-
-const WHEEL_COLORS = [
-  "#c8ff00",
-  "#111111",
-  "#f5f5e8",
-  "#0d0d0d",
-  "#a8d800",
-  "#1e1e1e",
-];
-const WHEEL_TEXT_COLORS = [
-  "#000000",
-  "#c8ff00",
-  "#000000",
-  "#c8ff00",
-  "#000000",
-  "#c8ff00",
-];
-
-function BudgetWheel({
-  budgets,
-  targetBudget,
-  spinning,
-  onSpinComplete,
-}: {
-  budgets: string[];
-  /** Budget to land on (must be one of budgets); wheel shows all but stops here */
-  targetBudget: string;
-  spinning: boolean;
-  onSpinComplete: (result: string) => void;
-}) {
-  const wheelRef = useRef<THREE.Group>(null);
-  const spinRef = useRef<{
-    active: boolean;
-    startTime: number;
-    finalAngle: number;
-    duration: number;
-    targetIdx: number;
-    done: boolean;
-  }>({
-    active: false,
-    startTime: -1,
-    finalAngle: 0,
-    duration: 4.5,
-    targetIdx: 0,
-    done: true,
-  });
-
-  const segCount = budgets.length;
-  const segAngle = (Math.PI * 2) / segCount;
-
-  useEffect(() => {
-    if (!spinning) return;
-    const targetIdx = (() => {
-      const idx = budgets.indexOf(targetBudget);
-      return idx >= 0 ? idx : Math.floor(Math.random() * segCount);
-    })();
-    // Compute final angle so targetIdx lands at 12 o'clock (π/2)
-    let stop = Math.PI / 2 - targetIdx * segAngle - segAngle / 2;
-    while (stop < 0) stop += Math.PI * 2;
-    const finalAngle = Math.PI * 2 * 6 + stop; // 6 full rotations
-    spinRef.current = {
-      active: true,
-      startTime: -1,
-      finalAngle,
-      duration: 4.0 + Math.random() * 0.8,
-      targetIdx,
-      done: false,
-    };
-  }, [spinning, segCount, segAngle, budgets, targetBudget]);
-
-  useFrame((state) => {
-    const s = spinRef.current;
-    if (!s.active || !wheelRef.current) return;
-    if (s.startTime < 0) s.startTime = state.clock.elapsedTime;
-    const elapsed = state.clock.elapsedTime - s.startTime;
-    const progress = Math.min(elapsed / s.duration, 1);
-    // Ease-out cubic
-    const eased = 1 - Math.pow(1 - progress, 3);
-    wheelRef.current.rotation.z = s.finalAngle * eased;
-    if (progress >= 1 && !s.done) {
-      s.done = true;
-      s.active = false;
-      onSpinComplete(budgets[s.targetIdx]);
-    }
-  });
-
-  return (
-    // Positioned to the other side of the studio on stage
-    <group position={[-3.8, STAGE_TOP_Y, 1.2]}>
-      {/* Base disc */}
-      <mesh position={[0, 0.04, 0]} receiveShadow>
-        <cylinderGeometry args={[0.3, 0.35, 0.08, 32]} />
-        <meshStandardMaterial color="#111111" roughness={0.2} metalness={0.6} />
-      </mesh>
-
-      {/* ── Spinning wheel group ── */}
-      <group ref={wheelRef} position={[0, 1.6, 0]}>
-        {budgets.map((budget, i) => {
-          const start = i * segAngle;
-          const mid = start + segAngle / 2;
-          const textR = 0.72;
-          return (
-            <group key={i}>
-              {/* Segment */}
-              <mesh rotation={[0, 0, 0]}>
-                <circleGeometry args={[1.18, 64, start, segAngle - 0.015]} />
-                <meshStandardMaterial
-                  color={WHEEL_COLORS[i % WHEEL_COLORS.length]}
-                  side={THREE.DoubleSide}
-                  roughness={0.5}
-                />
-              </mesh>
-              {/* Budget label */}
-              <Text
-                position={[Math.cos(mid) * textR, Math.sin(mid) * textR, 0.015]}
-                rotation={[0, 0, mid - Math.PI / 2]}
-                fontSize={0.115}
-                color={WHEEL_TEXT_COLORS[i % WHEEL_TEXT_COLORS.length]}
-                anchorX="center"
-                anchorY="middle"
-                maxWidth={0.7}
-              >
-                {budget}
-              </Text>
-            </group>
-          );
-        })}
-        {/* Center hub */}
-        <mesh position={[0, 0, 0.02]}>
-          <circleGeometry args={[0.12, 32]} />
-          <meshStandardMaterial
-            color={LW_LIME}
-            emissive={LW_LIME}
-            emissiveIntensity={0.9}
-          />
-        </mesh>
-      </group>
-
-      {/* ── Fixed outer ring (doesn't spin) ── */}
-      <mesh position={[0, 1.6, 0]}>
-        <torusGeometry args={[1.2, 0.045, 8, 80]} />
-        <meshStandardMaterial
-          color={LW_LIME}
-          emissive={LW_LIME}
-          emissiveIntensity={0.6}
-        />
-      </mesh>
-
-      {/* Pointer arrow at 12 o'clock */}
-      <mesh position={[0, 2.85, 0.06]} rotation={[0, 0, Math.PI]}>
-        <coneGeometry args={[0.09, 0.22, 3]} />
-        <meshStandardMaterial
-          color="black"
-          emissive="black"
-          emissiveIntensity={0.8}
-        />
-      </mesh>
-
-      {/* Glow light */}
-      <pointLight
-        position={[0, 1.6, 0.5]}
-        intensity={1.2}
-        color={LW_LIME}
-        distance={3}
-      />
-    </group>
-  );
-}
+// (oude projecttypes + budget-rad zijn vervangen door categorie + prijsgroep)
 
 // ─── Main experience ─────────────────────────────────────────────────────────
 
@@ -1008,17 +932,9 @@ export default function GameshowExperience() {
   const [playerReplyText, setPlayerReplyText] = useState("");
   const [showPlayerReply, setShowPlayerReply] = useState(false);
 
-  // ── Wheel state ──
-  const [wheelBudgets, setWheelBudgets] = useState<string[]>([]);
-  const [wheelTargetBudget, setWheelTargetBudget] = useState("");
-  const [wheelSpinning, setWheelSpinning] = useState(false);
-  const [wheelResult, setWheelResult] = useState("");
-  const [wheelCanSpin, setWheelCanSpin] = useState(false);
-
   // ── Error state ──
   const [nameError, setNameError] = useState("");
   const [inputError, setInputError] = useState("");
-  const [wheelError, setWheelError] = useState("");
   const [editError, setEditError] = useState("");
 
   // ── Homepage / send state ──
@@ -1073,20 +989,6 @@ export default function GameshowExperience() {
   useEffect(() => {
     if (!typingDone) return;
 
-    // TV-budget: presentator heeft "dan mikken we op X..." uitgetypt → leespauze, dan naar outro (zoals andere rondes)
-    if (phase === "tvBudget" && answers.budget) {
-      const outroIdx = INTERVIEW_STEPS.findIndex((s) => s.isOutro);
-      const t = setTimeout(() => {
-        setPhase("questionPlayer");
-        setScreenText("");
-        setInterviewStep(outroIdx);
-        setPresenterFullText(
-          INTERVIEW_STEPS[outroIdx].getPresenterText(playerName),
-        );
-      }, 1100);
-      return () => clearTimeout(t);
-    }
-
     if (interviewStep < 0) return;
     const step = INTERVIEW_STEPS[interviewStep];
     if (!step) return;
@@ -1094,30 +996,6 @@ export default function GameshowExperience() {
     if (step.isOutro) {
       // Korte leespauze na outro-tekst, dan naar eindscherm
       const t = setTimeout(() => setIsComplete(true), 1400);
-      return () => clearTimeout(t);
-    }
-
-    // Wheel step: camera zooms to wheel, spin starts (only when not yet completed)
-    if (step.isWheel) {
-      if (answers.budget) return; // Already spun; handleWheelComplete owns phase flow
-      const projectType = answers.projectType ?? "";
-      const projectBudgets = BUDGET_BY_PROJECT[projectType] ?? DEFAULT_BUDGETS;
-      const targetBudget = projectBudgets[0] ?? DEFAULT_BUDGETS[0];
-      setWheelBudgets(DEFAULT_BUDGETS);
-      setWheelTargetBudget(targetBudget);
-      setWheelResult("");
-      setWheelSpinning(false);
-      // Al in wheelZoom? Niet opnieuw resetten anders flasht de knop (effect draait op phase-change).
-      if (phase === "wheelZoom") {
-        if (!wheelResult && !wheelSpinning) setWheelCanSpin(true);
-        return;
-      }
-      setWheelCanSpin(false);
-      // Korte leespauze na "Draai aan het rad", dan rad tonen
-      const t = setTimeout(() => {
-        setPhase("wheelZoom");
-        setWheelCanSpin(true);
-      }, 800);
       return () => clearTimeout(t);
     }
 
@@ -1137,32 +1015,13 @@ export default function GameshowExperience() {
     // (na submit verandert answers en zou dit effect anders opnieuw het invoer tonen)
     if (answers[step.key] !== undefined && answers[step.key] !== "") return;
 
-    // Korte leespauze na vraag van presentator, dan invoerveld tonen
+    // Korte leespauze na vraag van presentator, dan invoer/keuzes tonen
     const t = setTimeout(() => {
       setShowInput(true);
       setTimeout(() => answerInputRef.current?.focus(), 60);
     }, 700);
     return () => clearTimeout(t);
   }, [typingDone, interviewStep, playerName, answers, phase]);
-
-  // ── Wheel spin complete ──
-  const handleWheelComplete = useCallback(
-    (result: string) => {
-      setWheelSpinning(false);
-      setWheelCanSpin(false);
-      setWheelResult(result);
-      setAnswers((prev) => ({ ...prev, budget: result }));
-      setScreenText(result);
-      // Camera naar TV; presentator zegt "dan mikken we op X...". Overgang naar outro gebeurt in effect na typing + leespauze.
-      setTimeout(() => {
-        setPhase("tvBudget");
-        setPresenterFullText(
-          `${playerName}, dan mikken we op ${result}. Daar kunnen we iets heel tofs mee bouwen!`,
-        );
-      }, 400);
-    },
-    [playerName],
-  );
 
   // ── Submit text answer ──
   const submitAnswer = useCallback(
@@ -1225,18 +1084,12 @@ export default function GameshowExperience() {
     setAnswers({});
     setIsComplete(false);
     setScreenText("");
-    setWheelBudgets([]);
-    setWheelTargetBudget("");
-    setWheelSpinning(false);
-    setWheelResult("");
-    setWheelCanSpin(false);
     setEditingKey(null);
     setEditValue("");
     setPlayerReplyText("");
     setShowPlayerReply(false);
     setNameError("");
     setInputError("");
-    setWheelError("");
     setEditError("");
     setIsSubmitting(false);
     setSubmitError("");
@@ -1274,10 +1127,7 @@ export default function GameshowExperience() {
   );
 
   const currentStep = INTERVIEW_STEPS[interviewStep];
-  const isQuestionPhase =
-    phase === "questionPlayer" ||
-    phase === "wheelZoom" ||
-    phase === "tvBudget";
+  const isQuestionPhase = phase === "questionPlayer";
   const showPresenter = isQuestionPhase && interviewStep >= 0 && !isComplete;
 
   // Determine who is "aan het woord" for the spotlight:
@@ -1305,10 +1155,6 @@ export default function GameshowExperience() {
           playerReplyText={playerReplyText}
           showPlayerReply={showPlayerReply}
           screenText={screenText}
-          wheelBudgets={wheelBudgets}
-          wheelTargetBudget={wheelTargetBudget}
-          wheelSpinning={wheelSpinning}
-          onWheelComplete={handleWheelComplete}
           speaker={speaker}
         />
       </Canvas>
@@ -1333,12 +1179,7 @@ export default function GameshowExperience() {
         {showPresenter &&
           !typingDone &&
           !showInput &&
-          !(
-            phase === "wheelZoom" &&
-            wheelCanSpin &&
-            !wheelSpinning &&
-            !wheelResult
-          ) && (
+          (
           <div
             className="pointer-events-auto absolute inset-0 z-[5] cursor-pointer"
             onClick={skipTyping}
@@ -1398,7 +1239,7 @@ export default function GameshowExperience() {
         )}
 
         {/* ── Progress indicator ── */}
-        {(phase === "questionPlayer" || phase === "wheelZoom") &&
+        {phase === "questionPlayer" &&
           interviewStep > 0 &&
           !isComplete && (
             <div className="pointer-events-none absolute top-16 left-1/2 -translate-x-1/2 z-10">
@@ -1406,13 +1247,12 @@ export default function GameshowExperience() {
                 {[
                   { label: "E-MAIL", si: 1 },
                   { label: "BEDRIJF", si: 2 },
-                  { label: "PROJECT", si: 3 },
+                  { label: "CATEGORIE", si: 3 },
                   { label: "BUDGET", si: 4 },
+                  { label: "VOORBEELDEN", si: 5 },
                 ].map(({ label, si }, i) => {
-                  const done =
-                    si < interviewStep || (si === 4 && !!wheelResult);
-                  const active =
-                    interviewStep === si || (si === 4 && phase === "wheelZoom");
+                  const done = si < interviewStep;
+                  const active = interviewStep === si;
                   return (
                     <div key={si} className="flex items-center gap-1">
                       <div className="flex flex-col items-center gap-1">
@@ -1439,7 +1279,7 @@ export default function GameshowExperience() {
                           {label}
                         </span>
                       </div>
-                      {i < 3 && (
+                      {i < 4 && (
                         <div
                           className={`mb-4 h-px w-8 ${done ? "bg-[#c8ff00]/50" : "bg-white/15"}`}
                         />
@@ -1488,85 +1328,151 @@ export default function GameshowExperience() {
             </div>
           )}
 
-        {/* ── Buzzer buttons: project type ── */}
-        {phase === "questionPlayer" &&
-          showInput &&
-          !isComplete &&
-          currentStep?.isMultipleChoice && (
-            <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center p-4 pb-7">
-              <div className="w-full max-w-2xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
+        {/* ── Interactieve keuzes ── */}
+        {phase === "questionPlayer" && showInput && !isComplete && currentStep && (
+          <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center p-4 pb-7">
+            {/* Categorie board (Jeopardy-achtig) */}
+            {currentStep.key === "category" && (
+              <div className="w-full max-w-4xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
                 <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
                   {currentStep.label}
                 </span>
-                <div className="grid grid-cols-3 gap-4 sm:grid-cols-6">
-                  {PROJECT_TYPES.map((pt, idx) => {
-                    const buzzerColors = [
-                      "#e63946",
-                      "#f4a261",
-                      "#2a9d8f",
-                      "#457b9d",
-                      "#9b5de5",
-                      "#c8ff00",
-                    ];
-                    const color = buzzerColors[idx];
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {LIVEWALL_CATEGORIES.map((c) => {
+                    const active = answers.category === c.id;
                     return (
                       <button
-                        key={pt}
-                        onClick={() => submitAnswer(pt)}
-                        className="group flex flex-col items-center gap-2 transition-all"
+                        key={c.id}
+                        onClick={() => submitAnswer(c.id)}
+                        className={`group relative overflow-hidden border p-4 text-left transition-all ${
+                          active
+                            ? "border-[#c8ff00] bg-[#c8ff00]/15"
+                            : "border-white/10 bg-[#0a0a12]/70 hover:border-[#c8ff00]/60 hover:bg-[#0a0a12]/90"
+                        }`}
                       >
-                        <div
-                          className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-black/40 shadow-[0_6px_0px_rgba(0,0,0,0.45)] transition-all group-hover:brightness-110 group-active:translate-y-[3px] group-active:shadow-[0_2px_0px_rgba(0,0,0,0.45)]"
-                          style={{ backgroundColor: color }}
-                        />
-                        <span className="font-pixel text-[9px] tracking-widest text-white/70 transition-all group-hover:text-white">
-                          {pt.toUpperCase()}
-                        </span>
+                        <div className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100">
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#c8ff00]/10 to-transparent" />
+                        </div>
+                        <div className="relative">
+                          <p className="font-pixel text-[11px] tracking-widest text-white">
+                            {c.title.toUpperCase()}
+                          </p>
+                          <p className="mt-2 text-xs text-white/55">
+                            Kies om voorbeelden te zien
+                          </p>
+                        </div>
                       </button>
                     );
                   })}
                 </div>
               </div>
-            </div>
-          )}
-
-        {/* ── Wheel spin button ── */}
-        {phase === "wheelZoom" &&
-          wheelCanSpin &&
-          !wheelSpinning &&
-          !wheelResult && (
-            <div className="pointer-events-auto absolute left-1/2 bottom-20 -translate-x-1/2">
-              <button
-              onClick={() => {
-                if (wheelSpinning) {
-                  setWheelError("Het rad is al aan het draaien.");
-                  return;
-                }
-                if (!wheelCanSpin) {
-                  setWheelError("Je kunt het rad nu nog niet draaien.");
-                  return;
-                }
-                if (!wheelBudgets.length) {
-                  setWheelError(
-                    "Er zijn geen budgetopties beschikbaar om op te draaien.",
-                  );
-                  return;
-                }
-                setWheelError("");
-                setWheelCanSpin(false);
-                setWheelSpinning(true);
-              }}
-                className="font-pixel border-2 border-[#c8ff00] bg-[#c8ff00] px-8 py-3 text-sm text-black shadow-[0_0_30px_rgba(200,255,0,0.5)] transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
-              >
-                DRAAI HET RAD →
-              </button>
-            {wheelError && (
-              <p className="mt-2 text-center text-xs text-red-400">
-                {wheelError}
-              </p>
             )}
-            </div>
-          )}
+
+            {/* Budget range */}
+            {currentStep.key === "budgetRange" && (
+              <div className="w-full max-w-2xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
+                <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
+                  {currentStep.label}
+                </span>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {BUDGET_RANGES.map((b) => {
+                    const active = answers.budgetRange === b.id;
+                    return (
+                      <button
+                        key={b.id}
+                        onClick={() => submitAnswer(b.id)}
+                        className={`border p-4 text-left transition-all ${
+                          active
+                            ? "border-[#c8ff00] bg-[#c8ff00]/15"
+                            : "border-white/10 bg-white/5 hover:border-[#c8ff00]/60 hover:bg-white/8"
+                        }`}
+                      >
+                        <p className="font-pixel text-[12px] tracking-widest text-white">
+                          {b.label}
+                        </p>
+                        <p className="mt-1 text-xs text-white/50">{b.hint}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Examples / similar projects */}
+            {currentStep.key === "examples" && (
+              <div className="w-full max-w-3xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
+                <div className="flex flex-col gap-1">
+                  <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
+                    SOORTGELIJKE PROJECTEN
+                  </span>
+                  <p className="text-xs text-white/55">
+                    Op basis van{" "}
+                    <span className="text-white/80">
+                      {answers.category ?? "—"}
+                    </span>{" "}
+                    en{" "}
+                    <span className="text-white/80">
+                      {BUDGET_RANGES.find((b) => b.id === answers.budgetRange)
+                        ?.label ?? "—"}
+                    </span>
+                  </p>
+                </div>
+
+                {answers.category && answers.budgetRange ? (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {getSimilarProjects(
+                      answers.category as LivewallCategory,
+                      answers.budgetRange as BudgetRangeId,
+                    ).map((p) => (
+                      <div
+                        key={p.id}
+                        className="border border-white/10 bg-white/5 p-4"
+                      >
+                        <p className="font-pixel text-[10px] tracking-widest text-white">
+                          {p.title.toUpperCase()}
+                        </p>
+                        <p className="mt-2 text-xs text-white/55">{p.tagline}</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <span className="text-[10px] text-[#c8ff00]/90">
+                            {p.category}
+                          </span>
+                          <span className="text-[10px] text-white/35">•</span>
+                          <span className="text-[10px] text-white/55">
+                            {
+                              BUDGET_RANGES.find((b) => b.id === p.budgetRange)
+                                ?.label
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-white/60">
+                    Kies eerst een categorie en prijsgroep om voorbeelden te zien.
+                  </p>
+                )}
+
+                <button
+                  onClick={() => {
+                    // Ga door naar de volgende stap (outro of vervolgvraag)
+                    setShowInput(false);
+                    setScreenText("");
+                    const nextIdx = interviewStep + 1;
+                    const nextStep = INTERVIEW_STEPS[nextIdx];
+                    if (!nextStep) return;
+                    setTypingDone(false);
+                    setInterviewStep(nextIdx);
+                    setPresenterFullText(nextStep.getPresenterText(playerName));
+                  }}
+                  className="font-pixel w-full border-2 border-[#c8ff00]/70 bg-[#c8ff00] py-3 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
+                >
+                  VOLGENDE →
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── Complete / reward screen ── */}
         {isComplete && (
@@ -1609,15 +1515,16 @@ export default function GameshowExperience() {
                       BUDGET
                     </p>
                     <p className="mt-1 font-pixel text-xl text-[#c8ff00]">
-                      {answers.budget ?? "—"}
+                      {BUDGET_RANGES.find((b) => b.id === answers.budgetRange)
+                        ?.label ?? "—"}
                     </p>
                   </div>
                   <div>
                     <p className="font-pixel text-[7px] tracking-[0.3em] text-[#c8ff00]/60">
-                      PROJECT
+                      CATEGORIE
                     </p>
                     <p className="mt-1 text-sm text-white/80">
-                      {answers.projectType ?? "—"}
+                      {answers.category ?? "—"}
                     </p>
                   </div>
                   <div className="mt-2 border-t border-white/10 pt-4">
@@ -1636,11 +1543,6 @@ export default function GameshowExperience() {
                     [
                       { key: "email", label: "E-MAIL", inputType: "email" },
                       { key: "company", label: "BEDRIJF", inputType: "text" },
-                      {
-                        key: "projectType",
-                        label: "PROJECT",
-                        inputType: "choice",
-                      },
                     ] as { key: string; label: string; inputType: string }[]
                   ).map(({ key, label, inputType }) => (
                     <div
@@ -1652,36 +1554,7 @@ export default function GameshowExperience() {
                           <span className="font-pixel text-[7px] tracking-widest text-[#c8ff00]/60">
                             {label}
                           </span>
-                          {inputType === "choice" ? (
-                            <div className="mt-1 grid grid-cols-3 gap-1.5">
-                              {PROJECT_TYPES.map((pt) => (
-                                <button
-                                  key={pt}
-                                  onClick={() => {
-                                    const projectBudgets =
-                                      BUDGET_BY_PROJECT[pt] ?? DEFAULT_BUDGETS;
-                                    const newBudget =
-                                      projectBudgets[0] ?? DEFAULT_BUDGETS[0];
-                                    setAnswers((prev) => ({
-                                      ...prev,
-                                      [key]: pt,
-                                      budget: newBudget,
-                                    }));
-                                    setEditError("");
-                                    setEditingKey(null);
-                                  }}
-                                  className={`font-pixel border py-1.5 text-[8px] tracking-widest transition-all ${
-                                    answers[key] === pt
-                                      ? "border-[#c8ff00] bg-[#c8ff00]/20 text-[#c8ff00]"
-                                      : "border-white/20 bg-white/5 text-white/60 hover:border-[#c8ff00]/60 hover:text-[#c8ff00]"
-                                  }`}
-                                >
-                                  {pt}
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="mt-1 flex gap-2">
+                          <div className="mt-1 flex gap-2">
                               <input
                                 type={inputType}
                                 value={editValue}
@@ -1749,7 +1622,6 @@ export default function GameshowExperience() {
                                 ✓
                               </button>
                             </div>
-                          )}
                             {editError && (
                               <p className="text-xs text-red-400">{editError}</p>
                             )}
@@ -1785,9 +1657,9 @@ export default function GameshowExperience() {
                         setSubmitError("Rond eerst je bewerking af voordat je verzendt.");
                         return;
                       }
-                      if (!answers.email || !answers.company || !answers.projectType || !answers.budget) {
+                      if (!answers.email || !answers.company || !answers.category || !answers.budgetRange) {
                         setSubmitError(
-                          "Niet alle velden zijn ingevuld. Controleer e‑mail, bedrijf, project en budget.",
+                          "Niet alle velden zijn ingevuld. Controleer e‑mail, bedrijf, categorie en budget.",
                         );
                         return;
                       }
