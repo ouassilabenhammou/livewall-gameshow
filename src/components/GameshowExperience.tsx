@@ -856,41 +856,14 @@ const INTERVIEW_STEPS: InterviewStep[] = [
   {
     key: "intro",
     getPresenterText: (name) =>
-      `Welkom, ${name}! Fijn dat je er bent. Ik ga je drie vragen stellen.`,
+      `Welkom, ${name}! Fijn dat je er bent. Kies je route, speel mee en win een prijs.`,
     hasInput: false,
   },
   {
-    key: "email",
-    label: "E-MAILADRES",
-    getPresenterText: () => "Wat is je e-mailadres?",
-    placeholder: "naam@bedrijf.nl",
-    inputType: "email",
-    hasInput: true,
-    showOnScreen: true,
-  },
-  {
-    key: "company",
-    label: "BEDRIJFSNAAM",
-    getPresenterText: () => "Wat is de naam van je bedrijf?",
-    placeholder: "Bijv. Livewall BV",
-    inputType: "text",
-    hasInput: true,
-    showOnScreen: true,
-  },
-  {
     key: "category",
-    label: "KIES EEN CATEGORIE",
+    label: "KIES CATEGORIE + BUDGET",
     getPresenterText: () =>
-      "Kies eerst waar je interesse ligt. Pak een categorie van het bord!",
-    hasInput: true,
-    isMultipleChoice: true,
-    showOnScreen: true,
-  },
-  {
-    key: "budgetRange",
-    label: "KIES JOUW BUDGET",
-    getPresenterText: () =>
-      "Nice! En in welke prijsgroep valt jouw project ongeveer?",
+      "Kies op het bord eerst een categorie en daarna je budgetniveau.",
     hasInput: true,
     isMultipleChoice: true,
     showOnScreen: true,
@@ -902,9 +875,29 @@ const INTERVIEW_STEPS: InterviewStep[] = [
     hasInput: true,
   },
   {
+    key: "email",
+    label: "E-MAILADRES",
+    getPresenterText: () =>
+      "Lekker gespeeld! Je hebt een prijs gewonnen. Naar welk e-mailadres mogen we die sturen?",
+    placeholder: "naam@bedrijf.nl",
+    inputType: "email",
+    hasInput: true,
+    showOnScreen: true,
+  },
+  {
+    key: "company",
+    label: "BEDRIJFSNAAM",
+    getPresenterText: () =>
+      "Top! En wat is de naam van je bedrijf voor de prijsregistratie?",
+    placeholder: "Bijv. Livewall BV",
+    inputType: "text",
+    hasInput: true,
+    showOnScreen: true,
+  },
+  {
     key: "outro",
     getPresenterText: (name) =>
-      `Fantastisch, ${name}! Bedankt voor je antwoorden. We nemen snel contact met je op!`,
+      `Fantastisch, ${name}! Je prijs is geclaimd. We nemen snel contact met je op!`,
     hasInput: false,
     isOutro: true,
   },
@@ -927,6 +920,8 @@ export default function GameshowExperience() {
   const [showInput, setShowInput] = useState(false);
   const [currentInput, setCurrentInput] = useState("");
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [boardCategoryChoice, setBoardCategoryChoice] =
+    useState<LivewallCategory | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [screenText, setScreenText] = useState("");
   const [playerReplyText, setPlayerReplyText] = useState("");
@@ -1082,6 +1077,7 @@ export default function GameshowExperience() {
     setShowInput(false);
     setCurrentInput("");
     setAnswers({});
+    setBoardCategoryChoice(null);
     setIsComplete(false);
     setScreenText("");
     setEditingKey(null);
@@ -1245,11 +1241,10 @@ export default function GameshowExperience() {
             <div className="pointer-events-none absolute top-16 left-1/2 -translate-x-1/2 z-10">
               <div className="flex items-center gap-1">
                 {[
-                  { label: "E-MAIL", si: 1 },
-                  { label: "BEDRIJF", si: 2 },
-                  { label: "CATEGORIE", si: 3 },
-                  { label: "BUDGET", si: 4 },
-                  { label: "VOORBEELDEN", si: 5 },
+                  { label: "BORD", si: 1 },
+                  { label: "VOORBEELDEN", si: 2 },
+                  { label: "E-MAIL", si: 3 },
+                  { label: "BEDRIJF", si: 4 },
                 ].map(({ label, si }, i) => {
                   const done = si < interviewStep;
                   const active = interviewStep === si;
@@ -1279,7 +1274,7 @@ export default function GameshowExperience() {
                           {label}
                         </span>
                       </div>
-                      {i < 4 && (
+                      {i < 3 && (
                         <div
                           className={`mb-4 h-px w-8 ${done ? "bg-[#c8ff00]/50" : "bg-white/15"}`}
                         />
@@ -1333,17 +1328,18 @@ export default function GameshowExperience() {
           <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center p-4 pb-7">
             {/* Categorie board (Jeopardy-achtig) */}
             {currentStep.key === "category" && (
-              <div className="w-full max-w-4xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
+              <div className="w-full max-w-5xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
                 <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
                   {currentStep.label}
                 </span>
+
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {LIVEWALL_CATEGORIES.map((c) => {
-                    const active = answers.category === c.id;
+                    const active = boardCategoryChoice === c.id;
                     return (
                       <button
                         key={c.id}
-                        onClick={() => submitAnswer(c.id)}
+                        onClick={() => setBoardCategoryChoice(c.id)}
                         className={`group relative overflow-hidden border p-4 text-left transition-all ${
                           active
                             ? "border-[#c8ff00] bg-[#c8ff00]/15"
@@ -1358,42 +1354,65 @@ export default function GameshowExperience() {
                             {c.title.toUpperCase()}
                           </p>
                           <p className="mt-2 text-xs text-white/55">
-                            Kies om voorbeelden te zien
+                            Stap 1: kies categorie
                           </p>
                         </div>
                       </button>
                     );
                   })}
                 </div>
-              </div>
-            )}
 
-            {/* Budget range */}
-            {currentStep.key === "budgetRange" && (
-              <div className="w-full max-w-2xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
-                <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
-                  {currentStep.label}
-                </span>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {BUDGET_RANGES.map((b) => {
-                    const active = answers.budgetRange === b.id;
-                    return (
-                      <button
-                        key={b.id}
-                        onClick={() => submitAnswer(b.id)}
-                        className={`border p-4 text-left transition-all ${
-                          active
-                            ? "border-[#c8ff00] bg-[#c8ff00]/15"
-                            : "border-white/10 bg-white/5 hover:border-[#c8ff00]/60 hover:bg-white/8"
-                        }`}
-                      >
-                        <p className="font-pixel text-[12px] tracking-widest text-white">
-                          {b.label}
-                        </p>
-                        <p className="mt-1 text-xs text-white/50">{b.hint}</p>
-                      </button>
-                    );
-                  })}
+                <div className="pt-1">
+                  <p className="font-pixel text-[8px] tracking-[0.2em] text-white/55">
+                    STAP 2: KIES JE BUDGET
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {BUDGET_RANGES.map((b) => {
+                      const disabled = !boardCategoryChoice;
+                      return (
+                        <button
+                          key={b.id}
+                          disabled={disabled}
+                          onClick={() => {
+                            if (!boardCategoryChoice) return;
+                            const category = boardCategoryChoice;
+                            setAnswers((prev) => ({
+                              ...prev,
+                              category,
+                              budgetRange: b.id,
+                            }));
+                            setBoardCategoryChoice(null);
+                            setCurrentInput("");
+                            setShowInput(false);
+                            setScreenText("");
+                            setPlayerReplyText(`${category} • ${b.label}`);
+                            setShowPlayerReply(true);
+                            const nextIdx = interviewStep + 1;
+                            const nextStep = INTERVIEW_STEPS[nextIdx];
+                            if (!nextStep) return;
+                            setTimeout(() => {
+                              setShowPlayerReply(false);
+                              setTypingDone(false);
+                              setInterviewStep(nextIdx);
+                              setPresenterFullText(
+                                nextStep.getPresenterText(playerName),
+                              );
+                            }, 1500);
+                          }}
+                          className={`border p-3 text-left transition-all ${
+                            disabled
+                              ? "cursor-not-allowed border-white/10 bg-white/5 text-white/30"
+                              : "border-white/20 bg-white/5 hover:border-[#c8ff00]/60 hover:bg-white/8"
+                          }`}
+                        >
+                          <p className="font-pixel text-[10px] tracking-widest">
+                            {b.label}
+                          </p>
+                          <p className="mt-1 text-[11px] text-white/55">{b.hint}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
