@@ -1855,7 +1855,6 @@ export default function GameshowExperience() {
                 </div>
               </div>
             </div>
-          </div>
         )}
       </div>
 
