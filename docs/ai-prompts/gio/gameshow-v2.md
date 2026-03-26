@@ -167,3 +167,23 @@ voeg andere animaties toe en niet dat hij in en uitzoomt omdat de gebruiker er d
 **Prompt 42**
 
 voeg nog wat effecten / animaties toe om een wow effect te geven, maar zorg dat de gebruiker er geen last van heeft
+
+**Prompt 43**
+
+zorg dat de gebruiker niet precies op het edit knop hoeft te drukken maar gewoon op de hele row, ik zie trouwens de animaties nu niet meer voeg deze wel toe
+
+**Prompt 44**
+
+zorg dat de hele rij klikbaar is voor edit en dan na het verzenden je naar paar seconden word terug gestuurd naar de home pagina
+
+**Prompt 45**
+
+zorg dat het eindscherm op het einde verdwijnt als hij redirect naar begin scherm nadat het verzonden is
+
+**Prompt 46**
+
+zorg nu dat de tekstbox van de presentator op het eind scherm weg is wanneer hij redirect naar de home pagina
+
+**Prompt 47**
+
+nu is alleen de tekst eg maar ik bedoel heel de chat van presentator moet niet zichtbaar zijn bij het redirecten naar home pagina op het eind scherm
