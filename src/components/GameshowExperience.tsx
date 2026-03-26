@@ -19,7 +19,7 @@ const TURN_ANGLE = Math.PI / 9;
 // ─── TV screen — shows question text during game ─────────────────────────────
 
 function TVScreenLogo() {
-  const texture = useTexture("/livewall-logo.svg");
+  const texture = useTexture("/images/livewall-logo.svg");
   return (
     <mesh position={[0, 0, 0.072]} scale={[0.8, 0.8, 0.5]}>
       <planeGeometry args={[4.5, 1.0]} />
@@ -251,7 +251,12 @@ function PresenterGreeting({
 }) {
   if (!visible) return null;
   return (
-    <Html position={[0.3, 2.6, 1.5]} center style={{ pointerEvents: "none" }}>
+    <Html
+      position={[0.3, 2.6, 1.5]}
+      center
+      zIndexRange={[0, 0]}
+      style={{ pointerEvents: "none" }}
+    >
       <div
         style={{
           background: "rgba(4,4,10,0.94)",
@@ -654,10 +659,6 @@ function Scene({
   playerReplyText,
   showPlayerReply,
   screenText,
-  wheelBudgets,
-  wheelTargetBudget,
-  wheelSpinning,
-  onWheelComplete,
   speaker,
 }: {
   phase: GamePhase;
@@ -667,15 +668,10 @@ function Scene({
   playerReplyText: string;
   showPlayerReply: boolean;
   screenText: string;
-  wheelBudgets: string[];
-  wheelTargetBudget: string;
-  wheelSpinning: boolean;
-  onWheelComplete: (result: string) => void;
   speaker: Speaker;
 }) {
   const screenActive = phase !== "idle" && !!playerName;
   const isIdle = phase === "idle";
-  const showWheel = phase === "wheelZoom" || wheelSpinning;
   const lightsActive = !isIdle;
 
   return (
@@ -687,14 +683,6 @@ function Scene({
       <RoundStage active={!isIdle} />
       <TVScreen active={screenActive} budgetText={screenText || undefined} />
       <Audience />
-      {showWheel && wheelBudgets.length > 0 && wheelTargetBudget && (
-        <BudgetWheel
-          budgets={wheelBudgets}
-          targetBudget={wheelTargetBudget}
-          spinning={wheelSpinning}
-          onSpinComplete={onWheelComplete}
-        />
-      )}
       <fog attach="fog" args={["#000000", 12, 26]} />
 
       {/* Player — on round stage, rotated toward presenter */}
@@ -731,17 +719,237 @@ interface InterviewStep {
   showOnScreen?: boolean;
 }
 
+type LivewallCategory =
+  | "Branded Games"
+  | "Interactieve Campagnes"
+  | "Platforms & Apps"
+  | "Gamification & Loyalty"
+  | "Events & Experiences"
+  | "Community & Engagement";
+
+type BudgetRangeId = "2000-5000" | "5000-10000" | "10000-20000" | "20000+";
+
+const LIVEWALL_CATEGORIES: { id: LivewallCategory; title: LivewallCategory }[] =
+  [
+    { id: "Branded Games", title: "Branded Games" },
+    { id: "Interactieve Campagnes", title: "Interactieve Campagnes" },
+    { id: "Platforms & Apps", title: "Platforms & Apps" },
+    { id: "Gamification & Loyalty", title: "Gamification & Loyalty" },
+    { id: "Events & Experiences", title: "Events & Experiences" },
+    { id: "Community & Engagement", title: "Community & Engagement" },
+  ];
+
+const BUDGET_RANGES: { id: BudgetRangeId; label: string; hint: string }[] = [
+  { id: "2000-5000", label: "€2.000 – €5.000", hint: "Klein / MVP" },
+  { id: "5000-10000", label: "€5.000 – €10.000", hint: "Compact" },
+  { id: "10000-20000", label: "€10.000 – €20.000", hint: "Uitgebreid" },
+  { id: "20000+", label: "€20.000+", hint: "Groot" },
+];
+
+type DeadlineRangeId = "2-4w" | "4-8w" | "8-12w" | "12+w";
+
+const DEADLINE_RANGES: {
+  id: DeadlineRangeId;
+  label: string;
+  hint: string;
+  minWeeks: number;
+  maxWeeks: number; // exclusive, maxWeeks can be Infinity
+  midWeeks: number;
+}[] = [
+  { id: "2-4w", label: "2-8 Weken", hint: "Snel live (lean scope).", minWeeks: 2, maxWeeks: 5, midWeeks: 3.5 },
+  { id: "4-8w", label: "8-12 Weken", hint: "Compact traject met doorlooptijd.", minWeeks: 5, maxWeeks: 9, midWeeks: 7 },
+  { id: "8-12w", label: "12-16 Weken", hint: "Uitgebreid & polishen.", minWeeks: 9, maxWeeks: 13, midWeeks: 10.5 },
+  { id: "12+w", label: "16+ Weken", hint: "Groot project met meer loops.", minWeeks: 13, maxWeeks: Infinity, midWeeks: 16 },
+];
+
+type PastProject = {
+  id: string;
+  title: string;
+  category: LivewallCategory;
+  budgetRange: BudgetRangeId;
+  tagline: string;
+  durationWeeks: number;
+};
+
+const PAST_PROJECTS: PastProject[] = [
+  {
+    id: "bg-arcade-quiz",
+    title: "Branded arcade quiz experience",
+    category: "Branded Games",
+    budgetRange: "5000-10000",
+    tagline: "Snel spelconcept met merk-identiteit en score/leaderboard.",
+    durationWeeks: 7,
+  },
+  {
+    id: "bg-webgame-launch",
+    title: "Webgame voor productlancering",
+    category: "Branded Games",
+    budgetRange: "10000-20000",
+    tagline: "Browsergame met rewards en social share loops.",
+    durationWeeks: 10,
+  },
+  {
+    id: "ic-scratch-win",
+    title: "Interactieve scratch & win campagne",
+    category: "Interactieve Campagnes",
+    budgetRange: "2000-5000",
+    tagline: "Korte activatie met instant-win mechanics en lead capture.",
+    durationWeeks: 4,
+  },
+  {
+    id: "ic-ugc-challenge",
+    title: "UGC challenge met live ranking",
+    category: "Interactieve Campagnes",
+    budgetRange: "20000+",
+    tagline: "Meerdere weken campagne met content submissions en moderatie.",
+    durationWeeks: 16,
+  },
+  {
+    id: "pa-event-companion",
+    title: "Event companion webapp",
+    category: "Platforms & Apps",
+    budgetRange: "10000-20000",
+    tagline: "Interactie, planning en push-achtige updates in 1 flow.",
+    durationWeeks: 11,
+  },
+  {
+    id: "pa-microsite-platform",
+    title: "Campagneplatform + microsites",
+    category: "Platforms & Apps",
+    budgetRange: "20000+",
+    tagline: "Multi-page platform met beheer en herbruikbare modules.",
+    durationWeeks: 18,
+  },
+  {
+    id: "gl-stamp-card",
+    title: "Digitale stempelkaart",
+    category: "Gamification & Loyalty",
+    budgetRange: "5000-10000",
+    tagline: "Progressie, beloningen en eenvoudige segmentatie.",
+    durationWeeks: 8,
+  },
+  {
+    id: "gl-tiered-rewards",
+    title: "Loyalty tiers & rewards",
+    category: "Gamification & Loyalty",
+    budgetRange: "20000+",
+    tagline: "Levels, challenges en integratie met bestaande systemen.",
+    durationWeeks: 15,
+  },
+  {
+    id: "ee-live-activation",
+    title: "Live event activation wall",
+    category: "Events & Experiences",
+    budgetRange: "10000-20000",
+    tagline: "Publieksinteractie op locatie met real-time visuals.",
+    durationWeeks: 12,
+  },
+  {
+    id: "ee-stand-experience",
+    title: "Beursstand experience game",
+    category: "Events & Experiences",
+    budgetRange: "20000+",
+    tagline: "Custom experience met meerdere interactiepunten en content.",
+    durationWeeks: 17,
+  },
+  {
+    id: "ce-community-quest",
+    title: "Community quest met badges",
+    category: "Community & Engagement",
+    budgetRange: "5000-10000",
+    tagline: "Badges, challenges en engagement loops voor leden.",
+    durationWeeks: 8,
+  },
+  {
+    id: "ce-fan-hub",
+    title: "Fan hub met challenges",
+    category: "Community & Engagement",
+    budgetRange: "10000-20000",
+    tagline: "Content hub + gamified deelname en leaderboard.",
+    durationWeeks: 10,
+  },
+];
+
+function getSimilarProjects(category: LivewallCategory, budgetRange: BudgetRangeId) {
+  const exact = PAST_PROJECTS.filter(
+    (p) => p.category === category && p.budgetRange === budgetRange,
+  );
+  if (exact.length >= 3) return exact.slice(0, 3);
+  const sameCategory = PAST_PROJECTS.filter((p) => p.category === category);
+  const sameBudget = PAST_PROJECTS.filter((p) => p.budgetRange === budgetRange);
+  const merged = [...exact];
+  for (const p of [...sameCategory, ...sameBudget]) {
+    if (merged.some((m) => m.id === p.id)) continue;
+    merged.push(p);
+    if (merged.length >= 3) break;
+  }
+  return merged.slice(0, 3);
+}
+
+function getDeadlineRangeFromWeeks(weeks: number): DeadlineRangeId {
+  const found = DEADLINE_RANGES.find(
+    (r) => weeks >= r.minWeeks && weeks < r.maxWeeks,
+  );
+  return found?.id ?? "12+w";
+}
+
+function computeDeadlineFromContext(
+  category: LivewallCategory,
+  budgetRange: BudgetRangeId,
+) {
+  const candidates = getSimilarProjects(category, budgetRange);
+  const avgWeeks =
+    candidates.reduce((sum, p) => sum + p.durationWeeks, 0) /
+    Math.max(1, candidates.length);
+  const rangeId = getDeadlineRangeFromWeeks(avgWeeks);
+  const range =
+    DEADLINE_RANGES.find((r) => r.id === rangeId) ??
+    DEADLINE_RANGES[DEADLINE_RANGES.length - 1];
+  return { avgWeeks, rangeId, range };
+}
+
 const INTERVIEW_STEPS: InterviewStep[] = [
   {
     key: "intro",
     getPresenterText: (name) =>
-      `Welkom, ${name}! Fijn dat je er bent. Ik ga je drie vragen stellen.`,
+      `Welkom, ${name}! Fijn dat je er bent. Kies je route, speel mee en win een prijs.`,
+    hasInput: false,
+  },
+  {
+    key: "category",
+    label: "KIES CATEGORIE + BUDGET",
+    getPresenterText: () =>
+      "Kies op het bord eerst een categorie en daarna je budgetniveau.",
+    hasInput: true,
+    isMultipleChoice: true,
+    showOnScreen: true,
+  },
+  {
+    key: "examples",
+    getPresenterText: () =>
+      "Check! Hieronder zie je een paar soortgelijke projecten die we eerder hebben gemaakt.",
+    hasInput: true,
+  },
+  {
+    key: "timeGuess",
+    label: "DE TIJD GOKKEN",
+    getPresenterText: () =>
+      "De time is right!Hoe lang denk je dat deze projecten gemiddeld heeft gekost?",
+    hasInput: true,
+    isMultipleChoice: true,
+    showOnScreen: true,
+  },
+  {
+    key: "deadlineReveal",
+    getPresenterText: () =>
+      "Even kijken... we onthullen zo je deadline.",
     hasInput: false,
   },
   {
     key: "email",
     label: "E-MAILADRES",
-    getPresenterText: () => "Wat is je e-mailadres?",
+    getPresenterText: () =>
+      "Lekker gespeeld! Je hebt een prijs gewonnen. Naar welk e-mailadres mogen we die sturen?",
     placeholder: "naam@bedrijf.nl",
     inputType: "email",
     hasInput: true,
@@ -750,243 +958,23 @@ const INTERVIEW_STEPS: InterviewStep[] = [
   {
     key: "company",
     label: "BEDRIJFSNAAM",
-    getPresenterText: () => "Wat is de naam van je bedrijf?",
+    getPresenterText: () =>
+      "Top! En wat is de naam van je bedrijf voor de prijsregistratie?",
     placeholder: "Bijv. Livewall BV",
     inputType: "text",
     hasInput: true,
     showOnScreen: true,
   },
   {
-    key: "projectType",
-    label: "TYPE PROJECT",
-    getPresenterText: () => "Wat voor type project zoek je?",
-    hasInput: true,
-    isMultipleChoice: true,
-    showOnScreen: true,
-  },
-  {
-    key: "budget",
-    getPresenterText: () =>
-      "Top keuze! Laten we jouw budget bepalen. Draai aan het rad!",
-    hasInput: false,
-    isWheel: true,
-  },
-  {
     key: "outro",
     getPresenterText: (name) =>
-      `Fantastisch, ${name}! Bedankt voor je antwoorden. We nemen snel contact met je op!`,
+      `Fantastisch, ${name}! Je prijs is geclaimd. We nemen snel contact met je op!`,
     hasInput: false,
     isOutro: true,
   },
 ];
 
-const PROJECT_TYPES = [
-  "Website",
-  "App",
-  "Campagne",
-  "Branding",
-  "E-commerce",
-  "Anders",
-];
-
-const BUDGET_BY_PROJECT: Record<string, string[]> = {
-  Website: [
-    "€5k–€10k",
-  ],
-  App: [
-    "€10k–€20k",
-  ],
-  Campagne: [
-    "€20k–€30k",
-  ],
-  Branding: [
-    "€30k–€40k",
-  ],
-  "E-commerce": [
-    "€40k–€50k",
-  ],
-  Anders: [
-    "€50k+",
-  ],
-};
-const DEFAULT_BUDGETS = [
-  "€5k–€10k",
-  "€10k–€20k",
-  "€20k–€30k",
-  "€30k–€40k",
-  "€40k–€50k",
-  "€50k+",
-];
-
-// ─── Budget wheel ────────────────────────────────────────────────────────────
-
-const WHEEL_COLORS = [
-  "#c8ff00",
-  "#111111",
-  "#f5f5e8",
-  "#0d0d0d",
-  "#a8d800",
-  "#1e1e1e",
-];
-const WHEEL_TEXT_COLORS = [
-  "#000000",
-  "#c8ff00",
-  "#000000",
-  "#c8ff00",
-  "#000000",
-  "#c8ff00",
-];
-
-function BudgetWheel({
-  budgets,
-  targetBudget,
-  spinning,
-  onSpinComplete,
-}: {
-  budgets: string[];
-  /** Budget to land on (must be one of budgets); wheel shows all but stops here */
-  targetBudget: string;
-  spinning: boolean;
-  onSpinComplete: (result: string) => void;
-}) {
-  const wheelRef = useRef<THREE.Group>(null);
-  const spinRef = useRef<{
-    active: boolean;
-    startTime: number;
-    finalAngle: number;
-    duration: number;
-    targetIdx: number;
-    done: boolean;
-  }>({
-    active: false,
-    startTime: -1,
-    finalAngle: 0,
-    duration: 4.5,
-    targetIdx: 0,
-    done: true,
-  });
-
-  const segCount = budgets.length;
-  const segAngle = (Math.PI * 2) / segCount;
-
-  useEffect(() => {
-    if (!spinning) return;
-    const targetIdx = (() => {
-      const idx = budgets.indexOf(targetBudget);
-      return idx >= 0 ? idx : Math.floor(Math.random() * segCount);
-    })();
-    // Compute final angle so targetIdx lands at 12 o'clock (π/2)
-    let stop = Math.PI / 2 - targetIdx * segAngle - segAngle / 2;
-    while (stop < 0) stop += Math.PI * 2;
-    const finalAngle = Math.PI * 2 * 6 + stop; // 6 full rotations
-    spinRef.current = {
-      active: true,
-      startTime: -1,
-      finalAngle,
-      duration: 4.0 + Math.random() * 0.8,
-      targetIdx,
-      done: false,
-    };
-  }, [spinning, segCount, segAngle, budgets, targetBudget]);
-
-  useFrame((state) => {
-    const s = spinRef.current;
-    if (!s.active || !wheelRef.current) return;
-    if (s.startTime < 0) s.startTime = state.clock.elapsedTime;
-    const elapsed = state.clock.elapsedTime - s.startTime;
-    const progress = Math.min(elapsed / s.duration, 1);
-    // Ease-out cubic
-    const eased = 1 - Math.pow(1 - progress, 3);
-    wheelRef.current.rotation.z = s.finalAngle * eased;
-    if (progress >= 1 && !s.done) {
-      s.done = true;
-      s.active = false;
-      onSpinComplete(budgets[s.targetIdx]);
-    }
-  });
-
-  return (
-    // Positioned to the other side of the studio on stage
-    <group position={[-3.8, STAGE_TOP_Y, 1.2]}>
-      {/* Base disc */}
-      <mesh position={[0, 0.04, 0]} receiveShadow>
-        <cylinderGeometry args={[0.3, 0.35, 0.08, 32]} />
-        <meshStandardMaterial color="#111111" roughness={0.2} metalness={0.6} />
-      </mesh>
-
-      {/* ── Spinning wheel group ── */}
-      <group ref={wheelRef} position={[0, 1.6, 0]}>
-        {budgets.map((budget, i) => {
-          const start = i * segAngle;
-          const mid = start + segAngle / 2;
-          const textR = 0.72;
-          return (
-            <group key={i}>
-              {/* Segment */}
-              <mesh rotation={[0, 0, 0]}>
-                <circleGeometry args={[1.18, 64, start, segAngle - 0.015]} />
-                <meshStandardMaterial
-                  color={WHEEL_COLORS[i % WHEEL_COLORS.length]}
-                  side={THREE.DoubleSide}
-                  roughness={0.5}
-                />
-              </mesh>
-              {/* Budget label */}
-              <Text
-                position={[Math.cos(mid) * textR, Math.sin(mid) * textR, 0.015]}
-                rotation={[0, 0, mid - Math.PI / 2]}
-                fontSize={0.115}
-                color={WHEEL_TEXT_COLORS[i % WHEEL_TEXT_COLORS.length]}
-                anchorX="center"
-                anchorY="middle"
-                maxWidth={0.7}
-              >
-                {budget}
-              </Text>
-            </group>
-          );
-        })}
-        {/* Center hub */}
-        <mesh position={[0, 0, 0.02]}>
-          <circleGeometry args={[0.12, 32]} />
-          <meshStandardMaterial
-            color={LW_LIME}
-            emissive={LW_LIME}
-            emissiveIntensity={0.9}
-          />
-        </mesh>
-      </group>
-
-      {/* ── Fixed outer ring (doesn't spin) ── */}
-      <mesh position={[0, 1.6, 0]}>
-        <torusGeometry args={[1.2, 0.045, 8, 80]} />
-        <meshStandardMaterial
-          color={LW_LIME}
-          emissive={LW_LIME}
-          emissiveIntensity={0.6}
-        />
-      </mesh>
-
-      {/* Pointer arrow at 12 o'clock */}
-      <mesh position={[0, 2.85, 0.06]} rotation={[0, 0, Math.PI]}>
-        <coneGeometry args={[0.09, 0.22, 3]} />
-        <meshStandardMaterial
-          color="black"
-          emissive="black"
-          emissiveIntensity={0.8}
-        />
-      </mesh>
-
-      {/* Glow light */}
-      <pointLight
-        position={[0, 1.6, 0.5]}
-        intensity={1.2}
-        color={LW_LIME}
-        distance={3}
-      />
-    </group>
-  );
-}
+// (oude projecttypes + budget-rad zijn vervangen door categorie + prijsgroep)
 
 // ─── Main experience ─────────────────────────────────────────────────────────
 
@@ -1003,27 +991,22 @@ export default function GameshowExperience() {
   const [showInput, setShowInput] = useState(false);
   const [currentInput, setCurrentInput] = useState("");
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [boardCategoryChoice, setBoardCategoryChoice] =
+    useState<LivewallCategory | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [screenText, setScreenText] = useState("");
   const [playerReplyText, setPlayerReplyText] = useState("");
   const [showPlayerReply, setShowPlayerReply] = useState(false);
 
-  // ── Wheel state ──
-  const [wheelBudgets, setWheelBudgets] = useState<string[]>([]);
-  const [wheelTargetBudget, setWheelTargetBudget] = useState("");
-  const [wheelSpinning, setWheelSpinning] = useState(false);
-  const [wheelResult, setWheelResult] = useState("");
-  const [wheelCanSpin, setWheelCanSpin] = useState(false);
-
   // ── Error state ──
   const [nameError, setNameError] = useState("");
   const [inputError, setInputError] = useState("");
-  const [wheelError, setWheelError] = useState("");
   const [editError, setEditError] = useState("");
 
   // ── Homepage / send state ──
   const [showHomepage, setShowHomepage] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -1073,20 +1056,6 @@ export default function GameshowExperience() {
   useEffect(() => {
     if (!typingDone) return;
 
-    // TV-budget: presentator heeft "dan mikken we op X..." uitgetypt → leespauze, dan naar outro (zoals andere rondes)
-    if (phase === "tvBudget" && answers.budget) {
-      const outroIdx = INTERVIEW_STEPS.findIndex((s) => s.isOutro);
-      const t = setTimeout(() => {
-        setPhase("questionPlayer");
-        setScreenText("");
-        setInterviewStep(outroIdx);
-        setPresenterFullText(
-          INTERVIEW_STEPS[outroIdx].getPresenterText(playerName),
-        );
-      }, 1100);
-      return () => clearTimeout(t);
-    }
-
     if (interviewStep < 0) return;
     const step = INTERVIEW_STEPS[interviewStep];
     if (!step) return;
@@ -1094,30 +1063,6 @@ export default function GameshowExperience() {
     if (step.isOutro) {
       // Korte leespauze na outro-tekst, dan naar eindscherm
       const t = setTimeout(() => setIsComplete(true), 1400);
-      return () => clearTimeout(t);
-    }
-
-    // Wheel step: camera zooms to wheel, spin starts (only when not yet completed)
-    if (step.isWheel) {
-      if (answers.budget) return; // Already spun; handleWheelComplete owns phase flow
-      const projectType = answers.projectType ?? "";
-      const projectBudgets = BUDGET_BY_PROJECT[projectType] ?? DEFAULT_BUDGETS;
-      const targetBudget = projectBudgets[0] ?? DEFAULT_BUDGETS[0];
-      setWheelBudgets(DEFAULT_BUDGETS);
-      setWheelTargetBudget(targetBudget);
-      setWheelResult("");
-      setWheelSpinning(false);
-      // Al in wheelZoom? Niet opnieuw resetten anders flasht de knop (effect draait op phase-change).
-      if (phase === "wheelZoom") {
-        if (!wheelResult && !wheelSpinning) setWheelCanSpin(true);
-        return;
-      }
-      setWheelCanSpin(false);
-      // Korte leespauze na "Draai aan het rad", dan rad tonen
-      const t = setTimeout(() => {
-        setPhase("wheelZoom");
-        setWheelCanSpin(true);
-      }, 800);
       return () => clearTimeout(t);
     }
 
@@ -1137,32 +1082,13 @@ export default function GameshowExperience() {
     // (na submit verandert answers en zou dit effect anders opnieuw het invoer tonen)
     if (answers[step.key] !== undefined && answers[step.key] !== "") return;
 
-    // Korte leespauze na vraag van presentator, dan invoerveld tonen
+    // Korte leespauze na vraag van presentator, dan invoer/keuzes tonen
     const t = setTimeout(() => {
       setShowInput(true);
       setTimeout(() => answerInputRef.current?.focus(), 60);
     }, 700);
     return () => clearTimeout(t);
   }, [typingDone, interviewStep, playerName, answers, phase]);
-
-  // ── Wheel spin complete ──
-  const handleWheelComplete = useCallback(
-    (result: string) => {
-      setWheelSpinning(false);
-      setWheelCanSpin(false);
-      setWheelResult(result);
-      setAnswers((prev) => ({ ...prev, budget: result }));
-      setScreenText(result);
-      // Camera naar TV; presentator zegt "dan mikken we op X...". Overgang naar outro gebeurt in effect na typing + leespauze.
-      setTimeout(() => {
-        setPhase("tvBudget");
-        setPresenterFullText(
-          `${playerName}, dan mikken we op ${result}. Daar kunnen we iets heel tofs mee bouwen!`,
-        );
-      }, 400);
-    },
-    [playerName],
-  );
 
   // ── Submit text answer ──
   const submitAnswer = useCallback(
@@ -1223,22 +1149,18 @@ export default function GameshowExperience() {
     setShowInput(false);
     setCurrentInput("");
     setAnswers({});
+    setBoardCategoryChoice(null);
     setIsComplete(false);
     setScreenText("");
-    setWheelBudgets([]);
-    setWheelTargetBudget("");
-    setWheelSpinning(false);
-    setWheelResult("");
-    setWheelCanSpin(false);
     setEditingKey(null);
     setEditValue("");
     setPlayerReplyText("");
     setShowPlayerReply(false);
     setNameError("");
     setInputError("");
-    setWheelError("");
     setEditError("");
     setIsSubmitting(false);
+    setIsRedirecting(false);
     setSubmitError("");
     setSubmitSuccess("");
   }, []);
@@ -1274,17 +1196,19 @@ export default function GameshowExperience() {
   );
 
   const currentStep = INTERVIEW_STEPS[interviewStep];
-  const isQuestionPhase =
-    phase === "questionPlayer" ||
-    phase === "wheelZoom" ||
-    phase === "tvBudget";
-  const showPresenter = isQuestionPhase && interviewStep >= 0 && !isComplete;
+  const isQuestionPhase = phase === "questionPlayer";
+  const showPresenter =
+    isQuestionPhase && interviewStep >= 0 && !isComplete && !isRedirecting;
 
   // Determine who is "aan het woord" for the spotlight:
   // - during input we highlight the player
   // - otherwise, when the game is running, we highlight the presenter
   const speaker: Speaker =
-    phase === "idle" ? null : showInput ? "player" : "presenter";
+    phase === "idle" || isRedirecting
+      ? null
+      : showInput
+        ? "player"
+        : "presenter";
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-black">
@@ -1305,16 +1229,12 @@ export default function GameshowExperience() {
           playerReplyText={playerReplyText}
           showPlayerReply={showPlayerReply}
           screenText={screenText}
-          wheelBudgets={wheelBudgets}
-          wheelTargetBudget={wheelTargetBudget}
-          wheelSpinning={wheelSpinning}
-          onWheelComplete={handleWheelComplete}
           speaker={speaker}
         />
       </Canvas>
 
       {/* ── 2D overlay ── */}
-      <div className="pointer-events-none absolute inset-0">
+      <div className="pointer-events-none absolute inset-0 z-10">
         <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/65 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/65 to-transparent" />
 
@@ -1333,12 +1253,7 @@ export default function GameshowExperience() {
         {showPresenter &&
           !typingDone &&
           !showInput &&
-          !(
-            phase === "wheelZoom" &&
-            wheelCanSpin &&
-            !wheelSpinning &&
-            !wheelResult
-          ) && (
+          (
           <div
             className="pointer-events-auto absolute inset-0 z-[5] cursor-pointer"
             onClick={skipTyping}
@@ -1398,23 +1313,25 @@ export default function GameshowExperience() {
         )}
 
         {/* ── Progress indicator ── */}
-        {(phase === "questionPlayer" || phase === "wheelZoom") &&
+        {phase === "questionPlayer" &&
           interviewStep > 0 &&
           !isComplete && (
             <div className="pointer-events-none absolute top-16 left-1/2 -translate-x-1/2 z-10">
               <div className="flex items-center gap-1">
-                {[
-                  { label: "E-MAIL", si: 1 },
-                  { label: "BEDRIJF", si: 2 },
-                  { label: "PROJECT", si: 3 },
-                  { label: "BUDGET", si: 4 },
-                ].map(({ label, si }, i) => {
-                  const done =
-                    si < interviewStep || (si === 4 && !!wheelResult);
-                  const active =
-                    interviewStep === si || (si === 4 && phase === "wheelZoom");
+                {(
+                  [
+                    { key: "category", label: "BORD" },
+                    { key: "examples", label: "VOORBEELDEN" },
+                    { key: "timeGuess", label: "TIJD" },
+                    { key: "email", label: "E-MAIL" },
+                    { key: "company", label: "BEDRIJF" },
+                  ] as const
+                ).map(({ key, label }, i) => {
+                  const si = INTERVIEW_STEPS.findIndex((s) => s.key === key);
+                  const done = si >= 0 && si < interviewStep;
+                  const active = si >= 0 && interviewStep === si;
                   return (
-                    <div key={si} className="flex items-center gap-1">
+                    <div key={key} className="flex items-center gap-1">
                       <div className="flex flex-col items-center gap-1">
                         <div
                           className={`flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold transition-all ${
@@ -1425,7 +1342,7 @@ export default function GameshowExperience() {
                                 : "border-white/20 bg-white/5 text-white/30"
                           }`}
                         >
-                          {done ? "✓" : si}
+                          {done ? "✓" : si >= 0 ? si : "—"}
                         </div>
                         <span
                           className={`font-pixel text-[6px] tracking-widest ${
@@ -1439,9 +1356,11 @@ export default function GameshowExperience() {
                           {label}
                         </span>
                       </div>
-                      {i < 3 && (
+                      {i < 4 && (
                         <div
-                          className={`mb-4 h-px w-8 ${done ? "bg-[#c8ff00]/50" : "bg-white/15"}`}
+                          className={`mb-4 h-px w-8 ${
+                            done ? "bg-[#c8ff00]/50" : "bg-white/15"
+                          }`}
                         />
                       )}
                     </div>
@@ -1488,136 +1407,304 @@ export default function GameshowExperience() {
             </div>
           )}
 
-        {/* ── Buzzer buttons: project type ── */}
-        {phase === "questionPlayer" &&
-          showInput &&
-          !isComplete &&
-          currentStep?.isMultipleChoice && (
-            <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center p-4 pb-7">
-              <div className="w-full max-w-2xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
-                <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
-                  {currentStep.label}
-                </span>
-                <div className="grid grid-cols-3 gap-4 sm:grid-cols-6">
-                  {PROJECT_TYPES.map((pt, idx) => {
-                    const buzzerColors = [
-                      "#e63946",
-                      "#f4a261",
-                      "#2a9d8f",
-                      "#457b9d",
-                      "#9b5de5",
-                      "#c8ff00",
-                    ];
-                    const color = buzzerColors[idx];
+        {/* ── Interactieve keuzes ── */}
+        {phase === "questionPlayer" && showInput && !isComplete && currentStep && (
+          <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center p-4 pb-7">
+            {/* Categorie board (Jeopardy-achtig) */}
+            {currentStep.key === "category" && (
+              <div className="w-full max-w-5xl space-y-2 border border-white/15 bg-black/85 p-3 backdrop-blur-md">
+                <div className="grid grid-cols-2 gap-[3px] bg-black/60 p-[3px] sm:grid-cols-3 lg:grid-cols-6">
+                  {LIVEWALL_CATEGORIES.map((c) => {
+                    const activeColumn = boardCategoryChoice === c.id;
                     return (
-                      <button
-                        key={pt}
-                        onClick={() => submitAnswer(pt)}
-                        className="group flex flex-col items-center gap-2 transition-all"
+                      <div
+                        key={c.id}
+                        className={`border ${
+                          activeColumn
+                            ? "border-[#c8ff00]/90 shadow-[0_0_0_1px_rgba(200,255,0,0.25)]"
+                            : "border-white/15"
+                        }`}
                       >
-                        <div
-                          className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-black/40 shadow-[0_6px_0px_rgba(0,0,0,0.45)] transition-all group-hover:brightness-110 group-active:translate-y-[3px] group-active:shadow-[0_2px_0px_rgba(0,0,0,0.45)]"
-                          style={{ backgroundColor: color }}
-                        />
-                        <span className="font-pixel text-[9px] tracking-widest text-white/70 transition-all group-hover:text-white">
-                          {pt.toUpperCase()}
-                        </span>
-                      </button>
+                        <button
+                          onClick={() => setBoardCategoryChoice(c.id)}
+                          className={`flex h-16 w-full items-center justify-center border-b border-white/10 px-1 text-center transition-all ${
+                            activeColumn
+                              ? "bg-[#c8ff00]/18"
+                              : "bg-white/5 hover:bg-white/10"
+                          }`}
+                        >
+                          <span
+                            className={`font-pixel text-[8px] leading-3 tracking-wide ${
+                              activeColumn ? "text-[#c8ff00]" : "text-white"
+                            }`}
+                          >
+                            {c.title.toUpperCase()}
+                          </span>
+                        </button>
+
+                        <div className="grid grid-cols-2 gap-[2px] bg-black/40 p-[2px] lg:grid-cols-1">
+                          {BUDGET_RANGES.map((b) => {
+                            const disabled = !activeColumn;
+                            return (
+                              <button
+                                key={`${c.id}-${b.id}`}
+                                disabled={disabled}
+                                onClick={() => {
+                                  if (!boardCategoryChoice) return;
+                                  const category = boardCategoryChoice;
+                                  setAnswers((prev) => ({
+                                    ...prev,
+                                    category,
+                                    budgetRange: b.id,
+                                  }));
+                                  setBoardCategoryChoice(null);
+                                  setCurrentInput("");
+                                  setShowInput(false);
+                                  setScreenText("");
+                                  setPlayerReplyText(`${category} • ${b.label}`);
+                                  setShowPlayerReply(true);
+                                  const nextIdx = interviewStep + 1;
+                                  const nextStep = INTERVIEW_STEPS[nextIdx];
+                                  if (!nextStep) return;
+                                  setTimeout(() => {
+                                    setShowPlayerReply(false);
+                                    setTypingDone(false);
+                                    setInterviewStep(nextIdx);
+                                    setPresenterFullText(
+                                      nextStep.getPresenterText(playerName),
+                                    );
+                                  }, 1500);
+                                }}
+                                className={`flex h-14 w-full items-center justify-center px-1 transition-all lg:h-16 ${
+                                  disabled
+                                    ? "cursor-not-allowed border border-white/10 bg-white/5 text-[#c8ff00]/30"
+                                    : "border border-white/15 bg-black/75 text-[#c8ff00] hover:border-[#c8ff00]/70 hover:bg-[#c8ff00]/10 hover:text-[#e6ff80]"
+                                }`}
+                              >
+                                <span className="font-pixel text-[12px] tracking-wide lg:text-[14px]">
+                                  {b.id === "2000-5000"
+                                    ? "€2K"
+                                    : b.id === "5000-10000"
+                                      ? "€5K"
+                                      : b.id === "10000-20000"
+                                        ? "€10K"
+                                        : "€20K+"}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
-              </div>
-            </div>
-          )}
 
-        {/* ── Wheel spin button ── */}
-        {phase === "wheelZoom" &&
-          wheelCanSpin &&
-          !wheelSpinning &&
-          !wheelResult && (
-            <div className="pointer-events-auto absolute left-1/2 bottom-20 -translate-x-1/2">
-              <button
-              onClick={() => {
-                if (wheelSpinning) {
-                  setWheelError("Het rad is al aan het draaien.");
-                  return;
-                }
-                if (!wheelCanSpin) {
-                  setWheelError("Je kunt het rad nu nog niet draaien.");
-                  return;
-                }
-                if (!wheelBudgets.length) {
-                  setWheelError(
-                    "Er zijn geen budgetopties beschikbaar om op te draaien.",
-                  );
-                  return;
-                }
-                setWheelError("");
-                setWheelCanSpin(false);
-                setWheelSpinning(true);
-              }}
-                className="font-pixel border-2 border-[#c8ff00] bg-[#c8ff00] px-8 py-3 text-sm text-black shadow-[0_0_30px_rgba(200,255,0,0.5)] transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
-              >
-                DRAAI HET RAD →
-              </button>
-            {wheelError && (
-              <p className="mt-2 text-center text-xs text-red-400">
-                {wheelError}
-              </p>
+                <div className="font-pixel text-[8px] tracking-wide text-white/50">
+                  {!boardCategoryChoice
+                    ? "KIES EERST EEN CATEGORIE, DAARNA EEN BUDGETVAK"
+                    : `GEKOZEN: ${boardCategoryChoice.toUpperCase()}`}
+                </div>
+              </div>
             )}
-            </div>
-          )}
 
-        {/* ── Complete / reward screen ── */}
-        {isComplete && (
-          <div className="pointer-events-auto absolute inset-0 overflow-y-auto bg-black/88 backdrop-blur-sm">
-            <div className="flex min-h-full flex-col items-center justify-center px-4 py-10">
-              {/* Header */}
-              <div className="mb-8 text-center">
-                <svg
-                  width="44"
-                  height="44"
-                  viewBox="0 0 44 44"
-                  fill="none"
-                  className="mx-auto mb-4"
+            {/* Examples / similar projects */}
+            {currentStep.key === "examples" && (
+              <div className="w-full max-w-3xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
+                <div className="flex flex-col gap-1">
+                  <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
+                    SOORTGELIJKE PROJECTEN
+                  </span>
+                  <p className="text-xs text-white/55">
+                    Op basis van{" "}
+                    <span className="text-white/80">
+                      {answers.category ?? "—"}
+                    </span>{" "}
+                    en{" "}
+                    <span className="text-white/80">
+                      {BUDGET_RANGES.find((b) => b.id === answers.budgetRange)
+                        ?.label ?? "—"}
+                    </span>
+                  </p>
+                </div>
+
+                {answers.category && answers.budgetRange ? (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {getSimilarProjects(
+                      answers.category as LivewallCategory,
+                      answers.budgetRange as BudgetRangeId,
+                    ).map((p) => (
+                      <div
+                        key={p.id}
+                        className="border border-white/10 bg-white/5 p-4"
+                      >
+                        <p className="font-pixel text-[10px] tracking-widest text-white">
+                          {p.title.toUpperCase()}
+                        </p>
+                        <p className="mt-2 text-xs text-white/55">{p.tagline}</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <span className="text-[10px] text-[#c8ff00]/90">
+                            {p.category}
+                          </span>
+                          <span className="text-[10px] text-white/35">•</span>
+                          <span className="text-[10px] text-white/55">
+                            {
+                              BUDGET_RANGES.find((b) => b.id === p.budgetRange)
+                                ?.label
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-white/60">
+                    Kies eerst een categorie en prijsgroep om voorbeelden te zien.
+                  </p>
+                )}
+
+                <button
+                  onClick={() => {
+                    // Ga door naar de volgende stap (outro of vervolgvraag)
+                    setShowInput(false);
+                    setScreenText("");
+                    const nextIdx = interviewStep + 1;
+                    const nextStep = INTERVIEW_STEPS[nextIdx];
+                    if (!nextStep) return;
+                    setTypingDone(false);
+                    setInterviewStep(nextIdx);
+                    setPresenterFullText(nextStep.getPresenterText(playerName));
+                  }}
+                  className="font-pixel w-full border-2 border-[#c8ff00]/70 bg-[#c8ff00] py-3 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95"
                 >
-                  <path
-                    d="M22 4L26.5 15H38.5L28.5 22.5L32.5 34L22 27L11.5 34L15.5 22.5L5.5 15H17.5L22 4Z"
-                    fill="#c8ff00"
-                    stroke="#c8ff00"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <p className="font-pixel text-[9px] tracking-[0.45em] text-[#c8ff00]">
-                  MISSION
-                </p>
-                <h2 className="font-pixel text-4xl text-white sm:text-5xl">
-                  COMPLETED
-                </h2>
-                <p className="mt-3 font-pixel text-sm tracking-[0.2em] text-white/60">
-                  {playerName.toUpperCase()}
-                </p>
+                  VOLGENDE →
+                </button>
               </div>
+            )}
 
-              {/* Two-column layout */}
-              <div className="flex w-full max-w-2xl flex-col gap-5 sm:flex-row">
-                {/* Left: mission summary */}
-                <div className="flex flex-col justify-center gap-4 border border-[#c8ff00]/20 bg-[#c8ff00]/5 p-6 sm:w-56">
+            {/* Time guessing game */}
+            {currentStep.key === "timeGuess" && (
+              <div className="w-full max-w-3xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
+                <div className="flex flex-col gap-1">
+                  <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
+                    THE PRICE IS RIGHT
+                  </span>
+                  <p className="text-xs text-white/55">
+                    Op basis van de voorbeelden: hoe lang denk je dat dit project
+                    ongeveer gekost heeft?
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {DEADLINE_RANGES.map((d) => (
+                    <button
+                      key={d.id}
+                      onClick={() => {
+                        if (!answers.category || !answers.budgetRange) return;
+
+                        const { avgWeeks, rangeId, range } =
+                          computeDeadlineFromContext(
+                            answers.category as LivewallCategory,
+                            answers.budgetRange as BudgetRangeId,
+                          );
+                        const guessMid =
+                          DEADLINE_RANGES.find((r) => r.id === d.id)?.midWeeks ??
+                          d.midWeeks;
+                        const diff = Math.abs(guessMid - avgWeeks);
+
+                        const guessLabel = d.label;
+                        const actualLabel = range.label;
+
+                        const revealTone =
+                          d.id === rangeId
+                            ? "PRECIES GOED!"
+                            : diff <= 2
+                              ? "BIJNA!"
+                              : diff <= 4
+                                ? "GOEDE GOK"
+                                : "NAAST"
+                        ;
+
+                        const weeksRounded = Math.max(1, Math.round(avgWeeks));
+
+                        const revealText = `${revealTone} Jij koos ${guessLabel}. Gemiddeld duurde dit type project ongeveer ${actualLabel} (${weeksRounded} weken).`;
+
+                        setAnswers((prev) => ({
+                          ...prev,
+                          timeGuess: d.id,
+                          deadlineActual: rangeId,
+                        }));
+                        setPlayerReplyText(`Gok: ${guessLabel}`);
+                        setShowPlayerReply(true);
+                        setShowInput(false);
+                        setScreenText("");
+
+                        // Ga naar de reveal-stap (presentator onthult de deadline)
+                        const revealIdx = interviewStep + 1;
+                        setTimeout(() => {
+                          setShowPlayerReply(false);
+                          setTypingDone(false);
+                          setInterviewStep(revealIdx);
+                          setPresenterFullText(revealText);
+                        }, 1400);
+                      }}
+                      className={`w-full border border-white/10 bg-white/5 px-4 py-4 text-left transition-all hover:border-[#c8ff00]/60 hover:bg-[#c8ff00]/10`}
+                    >
+                      <div className="font-pixel text-[16px] tracking-wide text-white">
+                        {d.label}
+                      </div>
+                      <div className="mt-2 text-xs text-white/55">{d.hint}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Complete / reward screen ── TICKET */}
+        {isComplete && (
+          <div className="pointer-events-auto fixed inset-0 flex items-center justify-center bg-gradient-to-b from-black/90 to-black/95 backdrop-blur-md overflow-hidden z-50">
+            <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto animate-floating-ticket">
+              {/* Main ticket */}
+              <div className="relative border-4 border-[#c8ff00] bg-gradient-to-br from-[#0a0a12] via-black to-[#1a1a2e] m-4 shadow-2xl animate-ticket-spin-in animate-glow-border animate-corner-flash"
+                style={{ animation: 'ticketSpinIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, glowBorder 3s ease-in-out 0.8s infinite, cornerFlash 2.5s ease-in-out 1s infinite' }}>
+                
+                {/* Top section */}
+                <div className="border-b-2 border-[#c8ff00]/30 bg-gradient-to-r from-[#c8ff00]/10 to-transparent p-3 text-center animate-fade-in-up">
+                  <svg width="28" height="28" viewBox="0 0 44 44" fill="none" className="mx-auto mb-1 animate-emanating-rings" style={{ animation: 'emanatingRings 2s ease-out 0.5s infinite, starSpin 4s linear 0.5s infinite' }}>
+                    <path d="M22 4L26.5 15H38.5L28.5 22.5L32.5 34L22 27L11.5 34L15.5 22.5L5.5 15H17.5L22 4Z" fill="#c8ff00" stroke="#c8ff00" strokeWidth="1.5" strokeLinejoin="round"/>
+                  </svg>
+                  <p className="font-pixel text-[6px] tracking-[0.3em] text-[#c8ff00] mb-1" style={{ animation: 'fadeInUp 0.8s ease-out 0.1s forwards', opacity: 0 }}>🎮 PRIJS TICKET 🎮</p>
+                  <h2 className="font-pixel text-2xl text-[#c8ff00] tracking-widest font-bold animate-text-glow" style={{ animation: 'fadeInUp 0.8s ease-out 0.2s forwards, textGlow 3s ease-in-out 1s infinite', opacity: 0 }}>GEWONNEN!</h2>
+                </div>
+
+                {/* Content */}
+                <div className="p-4 space-y-2">
+                  {/* Player name */}
+                  <div className="text-center border-b border-[#c8ff00]/20 pb-2" style={{ animation: 'fadeInUp 0.8s ease-out 0.3s forwards', opacity: 0 }}>
+                    <p className="font-pixel text-[6px] tracking-[0.2em] text-[#c8ff00]/60">WINNAAR</p>
+                    <p className="font-pixel text-lg text-white line-clamp-1">{playerName.toUpperCase()}</p>
+                  </div>
                   <div>
                     <p className="font-pixel text-[7px] tracking-[0.3em] text-[#c8ff00]/60">
-                      BUDGET
+                      CATEGORIE
                     </p>
-                    <p className="mt-1 font-pixel text-xl text-[#c8ff00]">
-                      {answers.budget ?? "—"}
+                    <p className="mt-1 text-sm text-white/80">
+                      {answers.category ?? "—"}
                     </p>
                   </div>
                   <div>
                     <p className="font-pixel text-[7px] tracking-[0.3em] text-[#c8ff00]/60">
-                      PROJECT
+                      DEADLINE
                     </p>
                     <p className="mt-1 text-sm text-white/80">
-                      {answers.projectType ?? "—"}
+                      {
+                        DEADLINE_RANGES.find((d) => d.id === answers.deadlineActual)
+                          ?.label ??
+                        DEADLINE_RANGES.find((d) => d.id === answers.timeGuess)
+                          ?.label ??
+                        "—"
+                      }
                     </p>
                   </div>
                   <div className="mt-2 border-t border-white/10 pt-4">
@@ -1627,217 +1714,147 @@ export default function GameshowExperience() {
                   </div>
                 </div>
 
-                {/* Right: editable form */}
-                <div className="flex-1 border border-white/10 bg-black/40 p-6">
-                  <p className="font-pixel mb-4 text-[8px] tracking-[0.25em] text-white/50">
-                    JOUW GEGEVENS
-                  </p>
-                  {(
-                    [
-                      { key: "email", label: "E-MAIL", inputType: "email" },
-                      { key: "company", label: "BEDRIJF", inputType: "text" },
-                      {
-                        key: "projectType",
-                        label: "PROJECT",
-                        inputType: "choice",
-                      },
-                    ] as { key: string; label: string; inputType: string }[]
-                  ).map(({ key, label, inputType }) => (
-                    <div
-                      key={key}
-                      className="border-b border-white/8 py-3 last:border-0"
-                    >
-                      {editingKey === key ? (
-                        <div className="space-y-2">
-                          <span className="font-pixel text-[7px] tracking-widest text-[#c8ff00]/60">
-                            {label}
-                          </span>
-                          {inputType === "choice" ? (
-                            <div className="mt-1 grid grid-cols-3 gap-1.5">
-                              {PROJECT_TYPES.map((pt) => (
-                                <button
-                                  key={pt}
-                                  onClick={() => {
-                                    const projectBudgets =
-                                      BUDGET_BY_PROJECT[pt] ?? DEFAULT_BUDGETS;
-                                    const newBudget =
-                                      projectBudgets[0] ?? DEFAULT_BUDGETS[0];
-                                    setAnswers((prev) => ({
-                                      ...prev,
-                                      [key]: pt,
-                                      budget: newBudget,
-                                    }));
-                                    setEditError("");
-                                    setEditingKey(null);
-                                  }}
-                                  className={`font-pixel border py-1.5 text-[8px] tracking-widest transition-all ${
-                                    answers[key] === pt
-                                      ? "border-[#c8ff00] bg-[#c8ff00]/20 text-[#c8ff00]"
-                                      : "border-white/20 bg-white/5 text-white/60 hover:border-[#c8ff00]/60 hover:text-[#c8ff00]"
-                                  }`}
-                                >
-                                  {pt}
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="mt-1 flex gap-2">
-                              <input
-                                type={inputType}
-                                value={editValue}
-                                  onChange={(e) => {
-                                    setEditValue(e.target.value);
-                                    if (editError) setEditError("");
-                                  }}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      const trimmed = editValue.trim();
-                                      if (!trimmed) {
-                                        setEditError(
-                                          "Dit veld mag niet leeg zijn.",
-                                        );
-                                        return;
-                                      }
-                                      if (inputType === "email") {
-                                        const emailPattern =
-                                          /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                        if (!emailPattern.test(trimmed)) {
-                                          setEditError(
-                                            "Vul een geldig e-mailadres in (bijv. naam@bedrijf.nl).",
-                                          );
-                                          return;
-                                        }
-                                      }
-                                    setAnswers((prev) => ({
-                                      ...prev,
-                                        [key]: trimmed,
-                                    }));
-                                      setEditError("");
-                                    setEditingKey(null);
-                                  }
-                                  if (e.key === "Escape") setEditingKey(null);
-                                }}
-                                autoFocus
-                                className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-3 py-1.5 text-sm text-white outline-none focus:border-[#c8ff00]/70"
-                              />
-                              <button
-                                onClick={() => {
-                                    const trimmed = editValue.trim();
-                                    if (!trimmed) {
-                                      setEditError("Dit veld mag niet leeg zijn.");
-                                      return;
-                                    }
-                                    if (inputType === "email") {
-                                      const emailPattern =
-                                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                      if (!emailPattern.test(trimmed)) {
-                                        setEditError(
-                                          "Vul een geldig e-mailadres in (bijv. naam@bedrijf.nl).",
-                                        );
-                                        return;
-                                      }
-                                    }
-                                    setAnswers((prev) => ({
-                                      ...prev,
-                                      [key]: trimmed,
-                                    }));
-                                    setEditError("");
-                                  setEditingKey(null);
-                                }}
-                                className="border border-[#c8ff00]/40 bg-[#c8ff00]/10 px-3 py-1.5 text-[#c8ff00] transition-all hover:bg-[#c8ff00] hover:text-black"
-                              >
-                                ✓
-                              </button>
-                            </div>
-                          )}
-                            {editError && (
-                              <p className="text-xs text-red-400">{editError}</p>
-                            )}
+                  {/* All editable fields */}
+                  <div className="space-y-1">
+                    {/* Category */}
+                    <div className="border border-white/10 bg-white/5 p-2">
+                      {editingKey === "category" ? (
+                        <div className="space-y-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/60">CATEGORIE</span>
+                          <div className="flex gap-1">
+                            <select value={editValue} onChange={(e) => {setEditValue(e.target.value); if (editError) setEditError("");}} onKeyDown={(e) => {if (e.key === "Enter") {if (!editValue.trim()) {setEditError("Selecteer een categorie."); return;} setAnswers((prev) => ({...prev, category: editValue as LivewallCategory})); setEditError(""); setEditingKey(null);} if (e.key === "Escape") setEditingKey(null);}} autoFocus className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-2 py-1 text-xs text-white outline-none focus:border-[#c8ff00]/70">
+                              <option value="">Kies...</option>
+                              {LIVEWALL_CATEGORIES.map((c) => (<option key={c.id} value={c.id}>{c.title}</option>))}
+                            </select>
+                            <button onClick={() => {if (!editValue.trim()) {setEditError("Selecteer een categorie."); return;} setAnswers((prev) => ({...prev, category: editValue as LivewallCategory})); setEditError(""); setEditingKey(null);}} className="px-2 py-1 border border-[#c8ff00]/40 bg-[#c8ff00]/10 text-[#c8ff00] hover:bg-[#c8ff00] hover:text-black font-bold text-xs">✓</button>
+                          </div>
+                          {editError && <p className="text-xs text-red-400">{editError}</p>}
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between">
-                          <span className="font-pixel text-[7px] tracking-widest text-[#c8ff00]/50">
-                            {label}
-                          </span>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm text-white/75">
-                              {answers[key] ?? "—"}
-                            </span>
-                            <button
-                              onClick={() => {
-                                setEditingKey(key);
-                                setEditValue(answers[key] ?? "");
-                              }}
-                              className="text-[11px] text-white/25 transition-all hover:text-[#c8ff00]"
-                              title="Aanpassen"
-                            >
-                              ✎
-                            </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingKey("category");
+                            setEditValue(answers.category ?? "");
+                            setEditError("");
+                          }}
+                          className="flex w-full items-center justify-between group cursor-pointer hover:bg-white/5 p-1 text-left"
+                        >
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/50">CATEGORIE</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-white/80 line-clamp-1">{answers.category ?? "—"}</span>
+                            <span className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</span>
                           </div>
-                        </div>
+                        </button>
                       )}
                     </div>
-                  ))}
 
-                  <button
-                    onClick={async () => {
-                      if (editingKey) {
-                        setSubmitError("Rond eerst je bewerking af voordat je verzendt.");
-                        return;
-                      }
-                      if (!answers.email || !answers.company || !answers.projectType || !answers.budget) {
-                        setSubmitError(
-                          "Niet alle velden zijn ingevuld. Controleer e‑mail, bedrijf, project en budget.",
-                        );
-                        return;
-                      }
-                      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                      if (!emailPattern.test(answers.email)) {
-                        setSubmitError(
-                          "Het e-mailadres lijkt niet geldig. Gebruik bijv. naam@bedrijf.nl.",
-                        );
-                        return;
-                      }
+                    {/* Budget */}
+                    <div className="border border-white/10 bg-white/5 p-2">
+                      {editingKey === "budgetRange" ? (
+                        <div className="space-y-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/60">BUDGET</span>
+                          <div className="flex gap-1">
+                            <select value={editValue} onChange={(e) => {setEditValue(e.target.value); if (editError) setEditError("");}} onKeyDown={(e) => {if (e.key === "Enter") {if (!editValue.trim()) {setEditError("Selecteer budget."); return;} setAnswers((prev) => ({...prev, budgetRange: editValue as BudgetRangeId})); setEditError(""); setEditingKey(null);} if (e.key === "Escape") setEditingKey(null);}} autoFocus className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-2 py-1 text-xs text-white outline-none focus:border-[#c8ff00]/70">
+                              <option value="">Kies...</option>
+                              {BUDGET_RANGES.map((b) => (<option key={b.id} value={b.id}>{b.label}</option>))}
+                            </select>
+                            <button onClick={() => {if (!editValue.trim()) {setEditError("Selecteer budget."); return;} setAnswers((prev) => ({...prev, budgetRange: editValue as BudgetRangeId})); setEditError(""); setEditingKey(null);}} className="px-2 py-1 border border-[#c8ff00]/40 bg-[#c8ff00]/10 text-[#c8ff00] hover:bg-[#c8ff00] hover:text-black font-bold text-xs">✓</button>
+                          </div>
+                          {editError && <p className="text-xs text-red-400">{editError}</p>}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingKey("budgetRange");
+                            setEditValue(answers.budgetRange ?? "");
+                            setEditError("");
+                          }}
+                          className="flex w-full items-center justify-between group cursor-pointer hover:bg-white/5 p-1 text-left"
+                        >
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/50">BUDGET</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-white/80 line-clamp-1">{BUDGET_RANGES.find((b) => b.id === answers.budgetRange)?.label ?? "—"}</span>
+                            <span className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</span>
+                          </div>
+                        </button>
+                      )}
+                    </div>
 
-                      try {
-                        setSubmitError("");
-                        setSubmitSuccess("");
-                        setIsSubmitting(true);
+                    {/* Email */}
+                    <div className="border border-white/10 bg-white/5 p-2">
+                      {editingKey === "email" ? (
+                        <div className="space-y-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/60">📧 E-MAIL</span>
+                          <div className="flex gap-1">
+                            <input type="email" value={editValue} onChange={(e) => {setEditValue(e.target.value); if (editError) setEditError("");}} onKeyDown={(e) => {if (e.key === "Enter") {const trimmed = editValue.trim(); if (!trimmed) {setEditError("Vul in."); return;} const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailPattern.test(trimmed)) {setEditError("Geldig e-mail!"); return;} setAnswers((prev) => ({...prev, email: trimmed})); setEditError(""); setEditingKey(null);} if (e.key === "Escape") setEditingKey(null);}} autoFocus className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-2 py-1 text-xs text-white outline-none focus:border-[#c8ff00]/70"/>
+                            <button onClick={() => {const trimmed = editValue.trim(); if (!trimmed) {setEditError("Vul in."); return;} const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailPattern.test(trimmed)) {setEditError("Geldig e-mail!"); return;} setAnswers((prev) => ({...prev, email: trimmed})); setEditError(""); setEditingKey(null);}} className="px-2 py-1 border border-[#c8ff00]/40 bg-[#c8ff00]/10 text-[#c8ff00] hover:bg-[#c8ff00] hover:text-black font-bold text-xs">✓</button>
+                          </div>
+                          {editError && <p className="text-xs text-red-400">{editError}</p>}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingKey("email");
+                            setEditValue(answers.email ?? "");
+                            setEditError("");
+                          }}
+                          className="flex w-full items-center justify-between group cursor-pointer hover:bg-white/5 p-1 text-left"
+                        >
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/50">📧 E-MAIL</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-white/80 line-clamp-1">{answers.email ?? "—"}</span>
+                            <span className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</span>
+                          </div>
+                        </button>
+                      )}
+                    </div>
 
-                        // Hier zou normaal een API‑call komen om de lead te versturen.
-                        // Voor nu simuleren we een korte wachttijd.
-                        await new Promise((resolve) => setTimeout(resolve, 900));
+                    {/* Company */}
+                    <div className="border border-white/10 bg-white/5 p-2">
+                      {editingKey === "company" ? (
+                        <div className="space-y-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/60">🏢 BEDRIJF</span>
+                          <div className="flex gap-1">
+                            <input type="text" value={editValue} onChange={(e) => {setEditValue(e.target.value); if (editError) setEditError("");}} onKeyDown={(e) => {if (e.key === "Enter") {const trimmed = editValue.trim(); if (!trimmed) {setEditError("Vul in."); return;} setAnswers((prev) => ({...prev, company: trimmed})); setEditError(""); setEditingKey(null);} if (e.key === "Escape") setEditingKey(null);}} autoFocus className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-2 py-1 text-xs text-white outline-none focus:border-[#c8ff00]/70"/>
+                            <button onClick={() => {const trimmed = editValue.trim(); if (!trimmed) {setEditError("Vul in."); return;} setAnswers((prev) => ({...prev, company: trimmed})); setEditError(""); setEditingKey(null);}} className="px-2 py-1 border border-[#c8ff00]/40 bg-[#c8ff00]/10 text-[#c8ff00] hover:bg-[#c8ff00] hover:text-black font-bold text-xs">✓</button>
+                          </div>
+                          {editError && <p className="text-xs text-red-400">{editError}</p>}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingKey("company");
+                            setEditValue(answers.company ?? "");
+                            setEditError("");
+                          }}
+                          className="flex w-full items-center justify-between group cursor-pointer hover:bg-white/5 p-1 text-left"
+                        >
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/50">🏢 BEDRIJF</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-white/80 line-clamp-1">{answers.company ?? "—"}</span>
+                            <span className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</span>
+                          </div>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
-                        setSubmitSuccess("Je gegevens zijn succesvol verzonden. We sturen je terug naar de homepage.");
-                        // Korte delay zodat de speler het bericht kan lezen
-                        setTimeout(() => {
-                          setShowHomepage(true);
-                        }, 1800);
-                      } catch (err) {
-                        setSubmitError(
-                          `Er ging iets mis bij het verzenden van je gegevens. Probeer het opnieuw of neem direct contact op. ${
-                            err instanceof Error ? `Details: ${err.message}` : ""
-                          }`,
-                        );
-                      } finally {
-                        setIsSubmitting(false);
-                      }
-                    }}
-                    disabled={!!editingKey || isSubmitting}
-                    className="font-pixel mt-5 w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-3.5 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {isSubmitting ? "VERZENDEN..." : "VERZENDEN →"}
+                {/* Submit button */}
+                <div className="border-t-2 border-[#c8ff00]/30 bg-gradient-to-r from-transparent via-[#c8ff00]/5 to-transparent p-3">
+                  <button onClick={async () => {if (editingKey) {setSubmitError("Bewerk af!"); return;} if (!answers.email || !answers.company || !answers.category || !answers.budgetRange) {setSubmitError("Vul alles in!"); return;} const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailPattern.test(answers.email)) {setSubmitError("Geldig e-mail!"); return;} try {setSubmitError(""); setSubmitSuccess(""); setIsSubmitting(true); setIsRedirecting(false); await new Promise((resolve) => setTimeout(resolve, 900)); setSubmitSuccess("✓ Verzonden!"); setIsRedirecting(true); setTimeout(() => {setIsComplete(false); setShowInput(false); setPresenterFullText(""); setPresenterTypedText(""); setTypingDone(false); setShowHomepage(true);}, 2000);} catch (err) {setSubmitError("Fout bij verzenden!"); setIsRedirecting(false);} finally {setIsSubmitting(false);}}} disabled={!!editingKey || isSubmitting || isRedirecting} className="font-pixel w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-2.5 text-xs text-black font-bold hover:bg-transparent hover:text-[#c8ff00] disabled:opacity-40 uppercase transition-all hover:shadow-[0_0_20px_rgba(200,255,0,0.6)] active:scale-95 relative overflow-hidden" style={{ animation: isSubmitting || isRedirecting ? 'none' : 'textGlow 2s ease-in-out 1.5s infinite' }}>
+                    {!isSubmitting && <div className="absolute inset-0 opacity-0 hover:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer-border" style={{ animation: 'shimmerBorder 2s linear infinite' }} />}
+                    {isSubmitting ? "⏳ VERZENDEN..." : isRedirecting ? "DOORGESTUURD..." : "🚀 PRIJS CLAIMEN"}
                   </button>
-                  {submitError && (
-                    <p className="mt-2 text-xs text-red-400">{submitError}</p>
-                  )}
-                  {submitSuccess && (
-                    <p className="mt-2 text-xs text-[#c8ff00]">{submitSuccess}</p>
-                  )}
+                  {submitError && <p className="mt-1 text-xs text-red-400 text-center">{submitError}</p>}
+                  {submitSuccess && <p className="mt-1 text-xs text-[#c8ff00] text-center animate-text-glow" style={{ animation: 'textGlow 2s ease-in-out infinite' }}>{submitSuccess}</p>}
                 </div>
               </div>
             </div>
-          </div>
         )}
       </div>
 
@@ -1873,7 +1890,7 @@ export default function GameshowExperience() {
         <div className="absolute inset-0 z-40 flex flex-col">
           <div className="relative h-full w-full">
             <Image
-              src="/livewall-homepage-v2.png"
+              src="/images/livewall-homepage-v2.png"
               alt="Livewall Homepage"
               fill
               className="object-cover object-top"

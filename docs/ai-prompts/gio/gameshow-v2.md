@@ -147,3 +147,43 @@ Voeg uitgebreidere tech stukje dus ook hoe iemand dit runt enzo en welke technie
 **Prompt 37**
 
 zorg dat alle techniek die we ook echt gebruiken in dit project er staat en iets wat we niet gebruiken er ook dus niet in staat. Maak de beschijving van de gameshow ook wat duidelijker en meer een beschrijving dan een stap voor stap uitleg. De project starten stukje is wel goed. De structuur stukje zorg dat alle belangrijke mappen er staan met kleine uitleg.
+
+**Prompt 38**
+
+verander niks alleen het eind scherm die moet meer op een prijs ticket lijken en wat animaties toevoegen die erbij passen en alle gegevens die de speler in moet voeren moet op het eind scherm kunnen worden gewijzigd
+
+**Prompt 39**
+
+goed, zorg ook dat de categorie kan worden aangepast en het budget.
+
+**Prompt 40**
+
+zorg dat het de ticket gecentreerd is en je niet hoeft te scrollen
+
+**Prompt 41**
+
+voeg andere animaties toe en niet dat hij in en uitzoomt omdat de gebruiker er dan moeilijk op kan klikken
+
+**Prompt 42**
+
+voeg nog wat effecten / animaties toe om een wow effect te geven, maar zorg dat de gebruiker er geen last van heeft
+
+**Prompt 43**
+
+zorg dat de gebruiker niet precies op het edit knop hoeft te drukken maar gewoon op de hele row, ik zie trouwens de animaties nu niet meer voeg deze wel toe
+
+**Prompt 44**
+
+zorg dat de hele rij klikbaar is voor edit en dan na het verzenden je naar paar seconden word terug gestuurd naar de home pagina
+
+**Prompt 45**
+
+zorg dat het eindscherm op het einde verdwijnt als hij redirect naar begin scherm nadat het verzonden is
+
+**Prompt 46**
+
+zorg nu dat de tekstbox van de presentator op het eind scherm weg is wanneer hij redirect naar de home pagina
+
+**Prompt 47**
+
+nu is alleen de tekst eg maar ik bedoel heel de chat van presentator moet niet zichtbaar zijn bij het redirecten naar home pagina op het eind scherm
