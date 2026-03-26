@@ -251,7 +251,12 @@ function PresenterGreeting({
 }) {
   if (!visible) return null;
   return (
-    <Html position={[0.3, 2.6, 1.5]} center style={{ pointerEvents: "none" }}>
+    <Html
+      position={[0.3, 2.6, 1.5]}
+      center
+      zIndexRange={[0, 0]}
+      style={{ pointerEvents: "none" }}
+    >
       <div
         style={{
           background: "rgba(4,4,10,0.94)",
@@ -741,12 +746,29 @@ const BUDGET_RANGES: { id: BudgetRangeId; label: string; hint: string }[] = [
   { id: "20000+", label: "€20.000+", hint: "Groot" },
 ];
 
+type DeadlineRangeId = "2-4w" | "4-8w" | "8-12w" | "12+w";
+
+const DEADLINE_RANGES: {
+  id: DeadlineRangeId;
+  label: string;
+  hint: string;
+  minWeeks: number;
+  maxWeeks: number; // exclusive, maxWeeks can be Infinity
+  midWeeks: number;
+}[] = [
+  { id: "2-4w", label: "2-8 Weken", hint: "Snel live (lean scope).", minWeeks: 2, maxWeeks: 5, midWeeks: 3.5 },
+  { id: "4-8w", label: "8-12 Weken", hint: "Compact traject met doorlooptijd.", minWeeks: 5, maxWeeks: 9, midWeeks: 7 },
+  { id: "8-12w", label: "12-16 Weken", hint: "Uitgebreid & polishen.", minWeeks: 9, maxWeeks: 13, midWeeks: 10.5 },
+  { id: "12+w", label: "16+ Weken", hint: "Groot project met meer loops.", minWeeks: 13, maxWeeks: Infinity, midWeeks: 16 },
+];
+
 type PastProject = {
   id: string;
   title: string;
   category: LivewallCategory;
   budgetRange: BudgetRangeId;
   tagline: string;
+  durationWeeks: number;
 };
 
 const PAST_PROJECTS: PastProject[] = [
@@ -756,6 +778,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Branded Games",
     budgetRange: "5000-10000",
     tagline: "Snel spelconcept met merk-identiteit en score/leaderboard.",
+    durationWeeks: 7,
   },
   {
     id: "bg-webgame-launch",
@@ -763,6 +786,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Branded Games",
     budgetRange: "10000-20000",
     tagline: "Browsergame met rewards en social share loops.",
+    durationWeeks: 10,
   },
   {
     id: "ic-scratch-win",
@@ -770,6 +794,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Interactieve Campagnes",
     budgetRange: "2000-5000",
     tagline: "Korte activatie met instant-win mechanics en lead capture.",
+    durationWeeks: 4,
   },
   {
     id: "ic-ugc-challenge",
@@ -777,6 +802,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Interactieve Campagnes",
     budgetRange: "20000+",
     tagline: "Meerdere weken campagne met content submissions en moderatie.",
+    durationWeeks: 16,
   },
   {
     id: "pa-event-companion",
@@ -784,6 +810,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Platforms & Apps",
     budgetRange: "10000-20000",
     tagline: "Interactie, planning en push-achtige updates in 1 flow.",
+    durationWeeks: 11,
   },
   {
     id: "pa-microsite-platform",
@@ -791,6 +818,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Platforms & Apps",
     budgetRange: "20000+",
     tagline: "Multi-page platform met beheer en herbruikbare modules.",
+    durationWeeks: 18,
   },
   {
     id: "gl-stamp-card",
@@ -798,6 +826,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Gamification & Loyalty",
     budgetRange: "5000-10000",
     tagline: "Progressie, beloningen en eenvoudige segmentatie.",
+    durationWeeks: 8,
   },
   {
     id: "gl-tiered-rewards",
@@ -805,6 +834,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Gamification & Loyalty",
     budgetRange: "20000+",
     tagline: "Levels, challenges en integratie met bestaande systemen.",
+    durationWeeks: 15,
   },
   {
     id: "ee-live-activation",
@@ -812,6 +842,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Events & Experiences",
     budgetRange: "10000-20000",
     tagline: "Publieksinteractie op locatie met real-time visuals.",
+    durationWeeks: 12,
   },
   {
     id: "ee-stand-experience",
@@ -819,6 +850,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Events & Experiences",
     budgetRange: "20000+",
     tagline: "Custom experience met meerdere interactiepunten en content.",
+    durationWeeks: 17,
   },
   {
     id: "ce-community-quest",
@@ -826,6 +858,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Community & Engagement",
     budgetRange: "5000-10000",
     tagline: "Badges, challenges en engagement loops voor leden.",
+    durationWeeks: 8,
   },
   {
     id: "ce-fan-hub",
@@ -833,6 +866,7 @@ const PAST_PROJECTS: PastProject[] = [
     category: "Community & Engagement",
     budgetRange: "10000-20000",
     tagline: "Content hub + gamified deelname en leaderboard.",
+    durationWeeks: 10,
   },
 ];
 
@@ -850,6 +884,28 @@ function getSimilarProjects(category: LivewallCategory, budgetRange: BudgetRange
     if (merged.length >= 3) break;
   }
   return merged.slice(0, 3);
+}
+
+function getDeadlineRangeFromWeeks(weeks: number): DeadlineRangeId {
+  const found = DEADLINE_RANGES.find(
+    (r) => weeks >= r.minWeeks && weeks < r.maxWeeks,
+  );
+  return found?.id ?? "12+w";
+}
+
+function computeDeadlineFromContext(
+  category: LivewallCategory,
+  budgetRange: BudgetRangeId,
+) {
+  const candidates = getSimilarProjects(category, budgetRange);
+  const avgWeeks =
+    candidates.reduce((sum, p) => sum + p.durationWeeks, 0) /
+    Math.max(1, candidates.length);
+  const rangeId = getDeadlineRangeFromWeeks(avgWeeks);
+  const range =
+    DEADLINE_RANGES.find((r) => r.id === rangeId) ??
+    DEADLINE_RANGES[DEADLINE_RANGES.length - 1];
+  return { avgWeeks, rangeId, range };
 }
 
 const INTERVIEW_STEPS: InterviewStep[] = [
@@ -873,6 +929,21 @@ const INTERVIEW_STEPS: InterviewStep[] = [
     getPresenterText: () =>
       "Check! Hieronder zie je een paar soortgelijke projecten die we eerder hebben gemaakt.",
     hasInput: true,
+  },
+  {
+    key: "timeGuess",
+    label: "DE TIJD GOKKEN",
+    getPresenterText: () =>
+      "De time is right!Hoe lang denk je dat deze projecten gemiddeld heeft gekost?",
+    hasInput: true,
+    isMultipleChoice: true,
+    showOnScreen: true,
+  },
+  {
+    key: "deadlineReveal",
+    getPresenterText: () =>
+      "Even kijken... we onthullen zo je deadline.",
+    hasInput: false,
   },
   {
     key: "email",
@@ -1163,7 +1234,7 @@ export default function GameshowExperience() {
       </Canvas>
 
       {/* ── 2D overlay ── */}
-      <div className="pointer-events-none absolute inset-0">
+      <div className="pointer-events-none absolute inset-0 z-10">
         <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/65 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/65 to-transparent" />
 
@@ -1247,16 +1318,20 @@ export default function GameshowExperience() {
           !isComplete && (
             <div className="pointer-events-none absolute top-16 left-1/2 -translate-x-1/2 z-10">
               <div className="flex items-center gap-1">
-                {[
-                  { label: "BORD", si: 1 },
-                  { label: "VOORBEELDEN", si: 2 },
-                  { label: "E-MAIL", si: 3 },
-                  { label: "BEDRIJF", si: 4 },
-                ].map(({ label, si }, i) => {
-                  const done = si < interviewStep;
-                  const active = interviewStep === si;
+                {(
+                  [
+                    { key: "category", label: "BORD" },
+                    { key: "examples", label: "VOORBEELDEN" },
+                    { key: "timeGuess", label: "TIJD" },
+                    { key: "email", label: "E-MAIL" },
+                    { key: "company", label: "BEDRIJF" },
+                  ] as const
+                ).map(({ key, label }, i) => {
+                  const si = INTERVIEW_STEPS.findIndex((s) => s.key === key);
+                  const done = si >= 0 && si < interviewStep;
+                  const active = si >= 0 && interviewStep === si;
                   return (
-                    <div key={si} className="flex items-center gap-1">
+                    <div key={key} className="flex items-center gap-1">
                       <div className="flex flex-col items-center gap-1">
                         <div
                           className={`flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold transition-all ${
@@ -1267,7 +1342,7 @@ export default function GameshowExperience() {
                                 : "border-white/20 bg-white/5 text-white/30"
                           }`}
                         >
-                          {done ? "✓" : si}
+                          {done ? "✓" : si >= 0 ? si : "—"}
                         </div>
                         <span
                           className={`font-pixel text-[6px] tracking-widest ${
@@ -1281,9 +1356,11 @@ export default function GameshowExperience() {
                           {label}
                         </span>
                       </div>
-                      {i < 3 && (
+                      {i < 4 && (
                         <div
-                          className={`mb-4 h-px w-8 ${done ? "bg-[#c8ff00]/50" : "bg-white/15"}`}
+                          className={`mb-4 h-px w-8 ${
+                            done ? "bg-[#c8ff00]/50" : "bg-white/15"
+                          }`}
                         />
                       )}
                     </div>
@@ -1335,91 +1412,97 @@ export default function GameshowExperience() {
           <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center p-4 pb-7">
             {/* Categorie board (Jeopardy-achtig) */}
             {currentStep.key === "category" && (
-              <div className="w-full max-w-5xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
-                <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
-                  {currentStep.label}
-                </span>
-
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="w-full max-w-5xl space-y-2 border border-white/15 bg-black/85 p-3 backdrop-blur-md">
+                <div className="grid grid-cols-2 gap-[3px] bg-black/60 p-[3px] sm:grid-cols-3 lg:grid-cols-6">
                   {LIVEWALL_CATEGORIES.map((c) => {
-                    const active = boardCategoryChoice === c.id;
+                    const activeColumn = boardCategoryChoice === c.id;
                     return (
-                      <button
+                      <div
                         key={c.id}
-                        onClick={() => setBoardCategoryChoice(c.id)}
-                        className={`group relative overflow-hidden border p-4 text-left transition-all ${
-                          active
-                            ? "border-[#c8ff00] bg-[#c8ff00]/15"
-                            : "border-white/10 bg-[#0a0a12]/70 hover:border-[#c8ff00]/60 hover:bg-[#0a0a12]/90"
+                        className={`border ${
+                          activeColumn
+                            ? "border-[#c8ff00]/90 shadow-[0_0_0_1px_rgba(200,255,0,0.25)]"
+                            : "border-white/15"
                         }`}
                       >
-                        <div className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100">
-                          <div className="absolute inset-0 bg-gradient-to-br from-[#c8ff00]/10 to-transparent" />
-                        </div>
-                        <div className="relative">
-                          <p className="font-pixel text-[11px] tracking-widest text-white">
+                        <button
+                          onClick={() => setBoardCategoryChoice(c.id)}
+                          className={`flex h-16 w-full items-center justify-center border-b border-white/10 px-1 text-center transition-all ${
+                            activeColumn
+                              ? "bg-[#c8ff00]/18"
+                              : "bg-white/5 hover:bg-white/10"
+                          }`}
+                        >
+                          <span
+                            className={`font-pixel text-[8px] leading-3 tracking-wide ${
+                              activeColumn ? "text-[#c8ff00]" : "text-white"
+                            }`}
+                          >
                             {c.title.toUpperCase()}
-                          </p>
-                          <p className="mt-2 text-xs text-white/55">
-                            Stap 1: kies categorie
-                          </p>
+                          </span>
+                        </button>
+
+                        <div className="grid grid-cols-2 gap-[2px] bg-black/40 p-[2px] lg:grid-cols-1">
+                          {BUDGET_RANGES.map((b) => {
+                            const disabled = !activeColumn;
+                            return (
+                              <button
+                                key={`${c.id}-${b.id}`}
+                                disabled={disabled}
+                                onClick={() => {
+                                  if (!boardCategoryChoice) return;
+                                  const category = boardCategoryChoice;
+                                  setAnswers((prev) => ({
+                                    ...prev,
+                                    category,
+                                    budgetRange: b.id,
+                                  }));
+                                  setBoardCategoryChoice(null);
+                                  setCurrentInput("");
+                                  setShowInput(false);
+                                  setScreenText("");
+                                  setPlayerReplyText(`${category} • ${b.label}`);
+                                  setShowPlayerReply(true);
+                                  const nextIdx = interviewStep + 1;
+                                  const nextStep = INTERVIEW_STEPS[nextIdx];
+                                  if (!nextStep) return;
+                                  setTimeout(() => {
+                                    setShowPlayerReply(false);
+                                    setTypingDone(false);
+                                    setInterviewStep(nextIdx);
+                                    setPresenterFullText(
+                                      nextStep.getPresenterText(playerName),
+                                    );
+                                  }, 1500);
+                                }}
+                                className={`flex h-14 w-full items-center justify-center px-1 transition-all lg:h-16 ${
+                                  disabled
+                                    ? "cursor-not-allowed border border-white/10 bg-white/5 text-[#c8ff00]/30"
+                                    : "border border-white/15 bg-black/75 text-[#c8ff00] hover:border-[#c8ff00]/70 hover:bg-[#c8ff00]/10 hover:text-[#e6ff80]"
+                                }`}
+                              >
+                                <span className="font-pixel text-[12px] tracking-wide lg:text-[14px]">
+                                  {b.id === "2000-5000"
+                                    ? "€2K"
+                                    : b.id === "5000-10000"
+                                      ? "€5K"
+                                      : b.id === "10000-20000"
+                                        ? "€10K"
+                                        : "€20K+"}
+                                </span>
+                              </button>
+                            );
+                          })}
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
 
-                <div className="pt-1">
-                  <p className="font-pixel text-[8px] tracking-[0.2em] text-white/55">
-                    STAP 2: KIES JE BUDGET
-                  </p>
-                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {BUDGET_RANGES.map((b) => {
-                      const disabled = !boardCategoryChoice;
-                      return (
-                        <button
-                          key={b.id}
-                          disabled={disabled}
-                          onClick={() => {
-                            if (!boardCategoryChoice) return;
-                            const category = boardCategoryChoice;
-                            setAnswers((prev) => ({
-                              ...prev,
-                              category,
-                              budgetRange: b.id,
-                            }));
-                            setBoardCategoryChoice(null);
-                            setCurrentInput("");
-                            setShowInput(false);
-                            setScreenText("");
-                            setPlayerReplyText(`${category} • ${b.label}`);
-                            setShowPlayerReply(true);
-                            const nextIdx = interviewStep + 1;
-                            const nextStep = INTERVIEW_STEPS[nextIdx];
-                            if (!nextStep) return;
-                            setTimeout(() => {
-                              setShowPlayerReply(false);
-                              setTypingDone(false);
-                              setInterviewStep(nextIdx);
-                              setPresenterFullText(
-                                nextStep.getPresenterText(playerName),
-                              );
-                            }, 1500);
-                          }}
-                          className={`border p-3 text-left transition-all ${
-                            disabled
-                              ? "cursor-not-allowed border-white/10 bg-white/5 text-white/30"
-                              : "border-white/20 bg-white/5 hover:border-[#c8ff00]/60 hover:bg-white/8"
-                          }`}
-                        >
-                          <p className="font-pixel text-[10px] tracking-widest">
-                            {b.label}
-                          </p>
-                          <p className="mt-1 text-[11px] text-white/55">{b.hint}</p>
-                        </button>
-                      );
-                    })}
-                  </div>
+                <div className="font-pixel text-[8px] tracking-wide text-white/50">
+                  {!boardCategoryChoice
+                    ? "KIES EERST EEN CATEGORIE, DAARNA EEN BUDGETVAK"
+                    : `GEKOZEN: ${boardCategoryChoice.toUpperCase()}`}
                 </div>
               </div>
             )}
@@ -1497,6 +1580,84 @@ export default function GameshowExperience() {
                 </button>
               </div>
             )}
+
+            {/* Time guessing game */}
+            {currentStep.key === "timeGuess" && (
+              <div className="w-full max-w-3xl space-y-4 border border-white/10 bg-black/85 p-6 backdrop-blur-md">
+                <div className="flex flex-col gap-1">
+                  <span className="font-pixel text-[8px] tracking-[0.2em] text-[#c8ff00]/80">
+                    THE PRICE IS RIGHT
+                  </span>
+                  <p className="text-xs text-white/55">
+                    Op basis van de voorbeelden: hoe lang denk je dat dit project
+                    ongeveer gekost heeft?
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {DEADLINE_RANGES.map((d) => (
+                    <button
+                      key={d.id}
+                      onClick={() => {
+                        if (!answers.category || !answers.budgetRange) return;
+
+                        const { avgWeeks, rangeId, range } =
+                          computeDeadlineFromContext(
+                            answers.category as LivewallCategory,
+                            answers.budgetRange as BudgetRangeId,
+                          );
+                        const guessMid =
+                          DEADLINE_RANGES.find((r) => r.id === d.id)?.midWeeks ??
+                          d.midWeeks;
+                        const diff = Math.abs(guessMid - avgWeeks);
+
+                        const guessLabel = d.label;
+                        const actualLabel = range.label;
+
+                        const revealTone =
+                          d.id === rangeId
+                            ? "PRECIES GOED!"
+                            : diff <= 2
+                              ? "BIJNA!"
+                              : diff <= 4
+                                ? "GOEDE GOK"
+                                : "NAAST"
+                        ;
+
+                        const weeksRounded = Math.max(1, Math.round(avgWeeks));
+
+                        const revealText = `${revealTone} Jij koos ${guessLabel}. Gemiddeld duurde dit type project ongeveer ${actualLabel} (${weeksRounded} weken).`;
+
+                        setAnswers((prev) => ({
+                          ...prev,
+                          timeGuess: d.id,
+                          deadlineActual: rangeId,
+                        }));
+                        setPlayerReplyText(`Gok: ${guessLabel}`);
+                        setShowPlayerReply(true);
+                        setShowInput(false);
+                        setScreenText("");
+
+                        // Ga naar de reveal-stap (presentator onthult de deadline)
+                        const revealIdx = interviewStep + 1;
+                        setTimeout(() => {
+                          setShowPlayerReply(false);
+                          setTypingDone(false);
+                          setInterviewStep(revealIdx);
+                          setPresenterFullText(revealText);
+                        }, 1400);
+                      }}
+                      className={`w-full border border-white/10 bg-white/5 px-4 py-4 text-left transition-all hover:border-[#c8ff00]/60 hover:bg-[#c8ff00]/10`}
+                    >
+                      <div className="font-pixel text-[16px] tracking-wide text-white">
+                        {d.label}
+                      </div>
+                      <div className="mt-2 text-xs text-white/55">{d.hint}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1524,6 +1685,34 @@ export default function GameshowExperience() {
                     <p className="font-pixel text-[6px] tracking-[0.2em] text-[#c8ff00]/60">WINNAAR</p>
                     <p className="font-pixel text-lg text-white line-clamp-1">{playerName.toUpperCase()}</p>
                   </div>
+                  <div>
+                    <p className="font-pixel text-[7px] tracking-[0.3em] text-[#c8ff00]/60">
+                      CATEGORIE
+                    </p>
+                    <p className="mt-1 text-sm text-white/80">
+                      {answers.category ?? "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-pixel text-[7px] tracking-[0.3em] text-[#c8ff00]/60">
+                      DEADLINE
+                    </p>
+                    <p className="mt-1 text-sm text-white/80">
+                      {
+                        DEADLINE_RANGES.find((d) => d.id === answers.deadlineActual)
+                          ?.label ??
+                        DEADLINE_RANGES.find((d) => d.id === answers.timeGuess)
+                          ?.label ??
+                        "—"
+                      }
+                    </p>
+                  </div>
+                  <div className="mt-2 border-t border-white/10 pt-4">
+                    <p className="text-xs leading-5 text-white/40">
+                      Je gegevens worden gebruikt om contact op te nemen.
+                    </p>
+                  </div>
+                </div>
 
                   {/* All editable fields */}
                   <div className="space-y-1">
