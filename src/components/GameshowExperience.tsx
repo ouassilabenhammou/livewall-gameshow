@@ -935,6 +935,7 @@ export default function GameshowExperience() {
   // ── Homepage / send state ──
   const [showHomepage, setShowHomepage] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -1088,6 +1089,7 @@ export default function GameshowExperience() {
     setInputError("");
     setEditError("");
     setIsSubmitting(false);
+    setIsRedirecting(false);
     setSubmitError("");
     setSubmitSuccess("");
   }, []);
@@ -1124,13 +1126,18 @@ export default function GameshowExperience() {
 
   const currentStep = INTERVIEW_STEPS[interviewStep];
   const isQuestionPhase = phase === "questionPlayer";
-  const showPresenter = isQuestionPhase && interviewStep >= 0 && !isComplete;
+  const showPresenter =
+    isQuestionPhase && interviewStep >= 0 && !isComplete && !isRedirecting;
 
   // Determine who is "aan het woord" for the spotlight:
   // - during input we highlight the player
   // - otherwise, when the game is running, we highlight the presenter
   const speaker: Speaker =
-    phase === "idle" ? null : showInput ? "player" : "presenter";
+    phase === "idle" || isRedirecting
+      ? null
+      : showInput
+        ? "player"
+        : "presenter";
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-black">
@@ -1535,13 +1542,21 @@ export default function GameshowExperience() {
                           {editError && <p className="text-xs text-red-400">{editError}</p>}
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingKey("category");
+                            setEditValue(answers.category ?? "");
+                            setEditError("");
+                          }}
+                          className="flex w-full items-center justify-between group cursor-pointer hover:bg-white/5 p-1 text-left"
+                        >
                           <span className="font-pixel text-[6px] text-[#c8ff00]/50">CATEGORIE</span>
                           <div className="flex items-center gap-1">
                             <span className="text-xs text-white/80 line-clamp-1">{answers.category ?? "—"}</span>
-                            <button onClick={() => {setEditingKey("category"); setEditValue(answers.category ?? "");}} className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</button>
+                            <span className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</span>
                           </div>
-                        </div>
+                        </button>
                       )}
                     </div>
 
@@ -1560,13 +1575,21 @@ export default function GameshowExperience() {
                           {editError && <p className="text-xs text-red-400">{editError}</p>}
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingKey("budgetRange");
+                            setEditValue(answers.budgetRange ?? "");
+                            setEditError("");
+                          }}
+                          className="flex w-full items-center justify-between group cursor-pointer hover:bg-white/5 p-1 text-left"
+                        >
                           <span className="font-pixel text-[6px] text-[#c8ff00]/50">BUDGET</span>
                           <div className="flex items-center gap-1">
                             <span className="text-xs text-white/80 line-clamp-1">{BUDGET_RANGES.find((b) => b.id === answers.budgetRange)?.label ?? "—"}</span>
-                            <button onClick={() => {setEditingKey("budgetRange"); setEditValue(answers.budgetRange ?? "");}} className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</button>
+                            <span className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</span>
                           </div>
-                        </div>
+                        </button>
                       )}
                     </div>
 
@@ -1582,13 +1605,21 @@ export default function GameshowExperience() {
                           {editError && <p className="text-xs text-red-400">{editError}</p>}
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingKey("email");
+                            setEditValue(answers.email ?? "");
+                            setEditError("");
+                          }}
+                          className="flex w-full items-center justify-between group cursor-pointer hover:bg-white/5 p-1 text-left"
+                        >
                           <span className="font-pixel text-[6px] text-[#c8ff00]/50">📧 E-MAIL</span>
                           <div className="flex items-center gap-1">
                             <span className="text-xs text-white/80 line-clamp-1">{answers.email ?? "—"}</span>
-                            <button onClick={() => {setEditingKey("email"); setEditValue(answers.email ?? "");}} className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</button>
+                            <span className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</span>
                           </div>
-                        </div>
+                        </button>
                       )}
                     </div>
 
@@ -1604,13 +1635,21 @@ export default function GameshowExperience() {
                           {editError && <p className="text-xs text-red-400">{editError}</p>}
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingKey("company");
+                            setEditValue(answers.company ?? "");
+                            setEditError("");
+                          }}
+                          className="flex w-full items-center justify-between group cursor-pointer hover:bg-white/5 p-1 text-left"
+                        >
                           <span className="font-pixel text-[6px] text-[#c8ff00]/50">🏢 BEDRIJF</span>
                           <div className="flex items-center gap-1">
                             <span className="text-xs text-white/80 line-clamp-1">{answers.company ?? "—"}</span>
-                            <button onClick={() => {setEditingKey("company"); setEditValue(answers.company ?? "");}} className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</button>
+                            <span className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</span>
                           </div>
-                        </div>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -1618,9 +1657,9 @@ export default function GameshowExperience() {
 
                 {/* Submit button */}
                 <div className="border-t-2 border-[#c8ff00]/30 bg-gradient-to-r from-transparent via-[#c8ff00]/5 to-transparent p-3">
-                  <button onClick={async () => {if (editingKey) {setSubmitError("Bewerk af!"); return;} if (!answers.email || !answers.company || !answers.category || !answers.budgetRange) {setSubmitError("Vul alles in!"); return;} const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailPattern.test(answers.email)) {setSubmitError("Geldig e-mail!"); return;} try {setSubmitError(""); setSubmitSuccess(""); setIsSubmitting(true); await new Promise((resolve) => setTimeout(resolve, 900)); setSubmitSuccess("✓ Verzonden!"); setTimeout(() => {setShowHomepage(true);}, 2200);} catch (err) {setSubmitError("Fout bij verzenden!");} finally {setIsSubmitting(false);}}} disabled={!!editingKey || isSubmitting} className="font-pixel w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-2.5 text-xs text-black font-bold hover:bg-transparent hover:text-[#c8ff00] disabled:opacity-40 uppercase transition-all hover:shadow-[0_0_20px_rgba(200,255,0,0.6)] active:scale-95 relative overflow-hidden" style={{ animation: isSubmitting ? 'none' : 'textGlow 2s ease-in-out 1.5s infinite' }}>
+                  <button onClick={async () => {if (editingKey) {setSubmitError("Bewerk af!"); return;} if (!answers.email || !answers.company || !answers.category || !answers.budgetRange) {setSubmitError("Vul alles in!"); return;} const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailPattern.test(answers.email)) {setSubmitError("Geldig e-mail!"); return;} try {setSubmitError(""); setSubmitSuccess(""); setIsSubmitting(true); setIsRedirecting(false); await new Promise((resolve) => setTimeout(resolve, 900)); setSubmitSuccess("✓ Verzonden!"); setIsRedirecting(true); setTimeout(() => {setIsComplete(false); setShowInput(false); setPresenterFullText(""); setPresenterTypedText(""); setTypingDone(false); setShowHomepage(true);}, 2000);} catch (err) {setSubmitError("Fout bij verzenden!"); setIsRedirecting(false);} finally {setIsSubmitting(false);}}} disabled={!!editingKey || isSubmitting || isRedirecting} className="font-pixel w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-2.5 text-xs text-black font-bold hover:bg-transparent hover:text-[#c8ff00] disabled:opacity-40 uppercase transition-all hover:shadow-[0_0_20px_rgba(200,255,0,0.6)] active:scale-95 relative overflow-hidden" style={{ animation: isSubmitting || isRedirecting ? 'none' : 'textGlow 2s ease-in-out 1.5s infinite' }}>
                     {!isSubmitting && <div className="absolute inset-0 opacity-0 hover:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer-border" style={{ animation: 'shimmerBorder 2s linear infinite' }} />}
-                    {isSubmitting ? "⏳ VERZENDEN..." : "🚀 PRIJS CLAIMEN"}
+                    {isSubmitting ? "⏳ VERZENDEN..." : isRedirecting ? "DOORGESTUURD..." : "🚀 PRIJS CLAIMEN"}
                   </button>
                   {submitError && <p className="mt-1 text-xs text-red-400 text-center">{submitError}</p>}
                   {submitSuccess && <p className="mt-1 text-xs text-[#c8ff00] text-center animate-text-glow" style={{ animation: 'textGlow 2s ease-in-out infinite' }}>{submitSuccess}</p>}
