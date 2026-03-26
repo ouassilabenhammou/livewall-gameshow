@@ -147,3 +147,23 @@ Voeg uitgebreidere tech stukje dus ook hoe iemand dit runt enzo en welke technie
 **Prompt 37**
 
 zorg dat alle techniek die we ook echt gebruiken in dit project er staat en iets wat we niet gebruiken er ook dus niet in staat. Maak de beschijving van de gameshow ook wat duidelijker en meer een beschrijving dan een stap voor stap uitleg. De project starten stukje is wel goed. De structuur stukje zorg dat alle belangrijke mappen er staan met kleine uitleg.
+
+**Prompt 38**
+
+verander niks alleen het eind scherm die moet meer op een prijs ticket lijken en wat animaties toevoegen die erbij passen en alle gegevens die de speler in moet voeren moet op het eind scherm kunnen worden gewijzigd
+
+**Prompt 39**
+
+goed, zorg ook dat de categorie kan worden aangepast en het budget.
+
+**Prompt 40**
+
+zorg dat het de ticket gecentreerd is en je niet hoeft te scrollen
+
+**Prompt 41**
+
+voeg andere animaties toe en niet dat hij in en uitzoomt omdat de gebruiker er dan moeilijk op kan klikken
+
+**Prompt 42**
+
+voeg nog wat effecten / animaties toe om een wow effect te geven, maar zorg dat de gebruiker er geen last van heeft

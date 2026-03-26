@@ -1493,238 +1493,137 @@ export default function GameshowExperience() {
           </div>
         )}
 
-        {/* ── Complete / reward screen ── */}
+        {/* ── Complete / reward screen ── TICKET */}
         {isComplete && (
-          <div className="pointer-events-auto absolute inset-0 overflow-y-auto bg-black/88 backdrop-blur-sm">
-            <div className="flex min-h-full flex-col items-center justify-center px-4 py-10">
-              {/* Header */}
-              <div className="mb-8 text-center">
-                <svg
-                  width="44"
-                  height="44"
-                  viewBox="0 0 44 44"
-                  fill="none"
-                  className="mx-auto mb-4"
-                >
-                  <path
-                    d="M22 4L26.5 15H38.5L28.5 22.5L32.5 34L22 27L11.5 34L15.5 22.5L5.5 15H17.5L22 4Z"
-                    fill="#c8ff00"
-                    stroke="#c8ff00"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <p className="font-pixel text-[9px] tracking-[0.45em] text-[#c8ff00]">
-                  MISSION
-                </p>
-                <h2 className="font-pixel text-4xl text-white sm:text-5xl">
-                  COMPLETED
-                </h2>
-                <p className="mt-3 font-pixel text-sm tracking-[0.2em] text-white/60">
-                  {playerName.toUpperCase()}
-                </p>
-              </div>
-
-              {/* Two-column layout */}
-              <div className="flex w-full max-w-2xl flex-col gap-5 sm:flex-row">
-                {/* Left: mission summary */}
-                <div className="flex flex-col justify-center gap-4 border border-[#c8ff00]/20 bg-[#c8ff00]/5 p-6 sm:w-56">
-                  <div>
-                    <p className="font-pixel text-[7px] tracking-[0.3em] text-[#c8ff00]/60">
-                      BUDGET
-                    </p>
-                    <p className="mt-1 font-pixel text-xl text-[#c8ff00]">
-                      {BUDGET_RANGES.find((b) => b.id === answers.budgetRange)
-                        ?.label ?? "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-pixel text-[7px] tracking-[0.3em] text-[#c8ff00]/60">
-                      CATEGORIE
-                    </p>
-                    <p className="mt-1 text-sm text-white/80">
-                      {answers.category ?? "—"}
-                    </p>
-                  </div>
-                  <div className="mt-2 border-t border-white/10 pt-4">
-                    <p className="text-xs leading-5 text-white/40">
-                      Je gegevens worden gebruikt om contact op te nemen.
-                    </p>
-                  </div>
+          <div className="pointer-events-auto fixed inset-0 flex items-center justify-center bg-gradient-to-b from-black/90 to-black/95 backdrop-blur-md overflow-hidden z-50">
+            <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto animate-floating-ticket">
+              {/* Main ticket */}
+              <div className="relative border-4 border-[#c8ff00] bg-gradient-to-br from-[#0a0a12] via-black to-[#1a1a2e] m-4 shadow-2xl animate-ticket-spin-in animate-glow-border animate-corner-flash"
+                style={{ animation: 'ticketSpinIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, glowBorder 3s ease-in-out 0.8s infinite, cornerFlash 2.5s ease-in-out 1s infinite' }}>
+                
+                {/* Top section */}
+                <div className="border-b-2 border-[#c8ff00]/30 bg-gradient-to-r from-[#c8ff00]/10 to-transparent p-3 text-center animate-fade-in-up">
+                  <svg width="28" height="28" viewBox="0 0 44 44" fill="none" className="mx-auto mb-1 animate-emanating-rings" style={{ animation: 'emanatingRings 2s ease-out 0.5s infinite, starSpin 4s linear 0.5s infinite' }}>
+                    <path d="M22 4L26.5 15H38.5L28.5 22.5L32.5 34L22 27L11.5 34L15.5 22.5L5.5 15H17.5L22 4Z" fill="#c8ff00" stroke="#c8ff00" strokeWidth="1.5" strokeLinejoin="round"/>
+                  </svg>
+                  <p className="font-pixel text-[6px] tracking-[0.3em] text-[#c8ff00] mb-1" style={{ animation: 'fadeInUp 0.8s ease-out 0.1s forwards', opacity: 0 }}>🎮 PRIJS TICKET 🎮</p>
+                  <h2 className="font-pixel text-2xl text-[#c8ff00] tracking-widest font-bold animate-text-glow" style={{ animation: 'fadeInUp 0.8s ease-out 0.2s forwards, textGlow 3s ease-in-out 1s infinite', opacity: 0 }}>GEWONNEN!</h2>
                 </div>
 
-                {/* Right: editable form */}
-                <div className="flex-1 border border-white/10 bg-black/40 p-6">
-                  <p className="font-pixel mb-4 text-[8px] tracking-[0.25em] text-white/50">
-                    JOUW GEGEVENS
-                  </p>
-                  {(
-                    [
-                      { key: "email", label: "E-MAIL", inputType: "email" },
-                      { key: "company", label: "BEDRIJF", inputType: "text" },
-                    ] as { key: string; label: string; inputType: string }[]
-                  ).map(({ key, label, inputType }) => (
-                    <div
-                      key={key}
-                      className="border-b border-white/8 py-3 last:border-0"
-                    >
-                      {editingKey === key ? (
-                        <div className="space-y-2">
-                          <span className="font-pixel text-[7px] tracking-widest text-[#c8ff00]/60">
-                            {label}
-                          </span>
-                          <div className="mt-1 flex gap-2">
-                              <input
-                                type={inputType}
-                                value={editValue}
-                                  onChange={(e) => {
-                                    setEditValue(e.target.value);
-                                    if (editError) setEditError("");
-                                  }}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      const trimmed = editValue.trim();
-                                      if (!trimmed) {
-                                        setEditError(
-                                          "Dit veld mag niet leeg zijn.",
-                                        );
-                                        return;
-                                      }
-                                      if (inputType === "email") {
-                                        const emailPattern =
-                                          /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                        if (!emailPattern.test(trimmed)) {
-                                          setEditError(
-                                            "Vul een geldig e-mailadres in (bijv. naam@bedrijf.nl).",
-                                          );
-                                          return;
-                                        }
-                                      }
-                                    setAnswers((prev) => ({
-                                      ...prev,
-                                        [key]: trimmed,
-                                    }));
-                                      setEditError("");
-                                    setEditingKey(null);
-                                  }
-                                  if (e.key === "Escape") setEditingKey(null);
-                                }}
-                                autoFocus
-                                className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-3 py-1.5 text-sm text-white outline-none focus:border-[#c8ff00]/70"
-                              />
-                              <button
-                                onClick={() => {
-                                    const trimmed = editValue.trim();
-                                    if (!trimmed) {
-                                      setEditError("Dit veld mag niet leeg zijn.");
-                                      return;
-                                    }
-                                    if (inputType === "email") {
-                                      const emailPattern =
-                                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                      if (!emailPattern.test(trimmed)) {
-                                        setEditError(
-                                          "Vul een geldig e-mailadres in (bijv. naam@bedrijf.nl).",
-                                        );
-                                        return;
-                                      }
-                                    }
-                                    setAnswers((prev) => ({
-                                      ...prev,
-                                      [key]: trimmed,
-                                    }));
-                                    setEditError("");
-                                  setEditingKey(null);
-                                }}
-                                className="border border-[#c8ff00]/40 bg-[#c8ff00]/10 px-3 py-1.5 text-[#c8ff00] transition-all hover:bg-[#c8ff00] hover:text-black"
-                              >
-                                ✓
-                              </button>
-                            </div>
-                            {editError && (
-                              <p className="text-xs text-red-400">{editError}</p>
-                            )}
+                {/* Content */}
+                <div className="p-4 space-y-2">
+                  {/* Player name */}
+                  <div className="text-center border-b border-[#c8ff00]/20 pb-2" style={{ animation: 'fadeInUp 0.8s ease-out 0.3s forwards', opacity: 0 }}>
+                    <p className="font-pixel text-[6px] tracking-[0.2em] text-[#c8ff00]/60">WINNAAR</p>
+                    <p className="font-pixel text-lg text-white line-clamp-1">{playerName.toUpperCase()}</p>
+                  </div>
+
+                  {/* All editable fields */}
+                  <div className="space-y-1">
+                    {/* Category */}
+                    <div className="border border-white/10 bg-white/5 p-2">
+                      {editingKey === "category" ? (
+                        <div className="space-y-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/60">CATEGORIE</span>
+                          <div className="flex gap-1">
+                            <select value={editValue} onChange={(e) => {setEditValue(e.target.value); if (editError) setEditError("");}} onKeyDown={(e) => {if (e.key === "Enter") {if (!editValue.trim()) {setEditError("Selecteer een categorie."); return;} setAnswers((prev) => ({...prev, category: editValue as LivewallCategory})); setEditError(""); setEditingKey(null);} if (e.key === "Escape") setEditingKey(null);}} autoFocus className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-2 py-1 text-xs text-white outline-none focus:border-[#c8ff00]/70">
+                              <option value="">Kies...</option>
+                              {LIVEWALL_CATEGORIES.map((c) => (<option key={c.id} value={c.id}>{c.title}</option>))}
+                            </select>
+                            <button onClick={() => {if (!editValue.trim()) {setEditError("Selecteer een categorie."); return;} setAnswers((prev) => ({...prev, category: editValue as LivewallCategory})); setEditError(""); setEditingKey(null);}} className="px-2 py-1 border border-[#c8ff00]/40 bg-[#c8ff00]/10 text-[#c8ff00] hover:bg-[#c8ff00] hover:text-black font-bold text-xs">✓</button>
+                          </div>
+                          {editError && <p className="text-xs text-red-400">{editError}</p>}
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between">
-                          <span className="font-pixel text-[7px] tracking-widest text-[#c8ff00]/50">
-                            {label}
-                          </span>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm text-white/75">
-                              {answers[key] ?? "—"}
-                            </span>
-                            <button
-                              onClick={() => {
-                                setEditingKey(key);
-                                setEditValue(answers[key] ?? "");
-                              }}
-                              className="text-[11px] text-white/25 transition-all hover:text-[#c8ff00]"
-                              title="Aanpassen"
-                            >
-                              ✎
-                            </button>
+                        <div className="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/50">CATEGORIE</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-white/80 line-clamp-1">{answers.category ?? "—"}</span>
+                            <button onClick={() => {setEditingKey("category"); setEditValue(answers.category ?? "");}} className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</button>
                           </div>
                         </div>
                       )}
                     </div>
-                  ))}
 
-                  <button
-                    onClick={async () => {
-                      if (editingKey) {
-                        setSubmitError("Rond eerst je bewerking af voordat je verzendt.");
-                        return;
-                      }
-                      if (!answers.email || !answers.company || !answers.category || !answers.budgetRange) {
-                        setSubmitError(
-                          "Niet alle velden zijn ingevuld. Controleer e‑mail, bedrijf, categorie en budget.",
-                        );
-                        return;
-                      }
-                      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                      if (!emailPattern.test(answers.email)) {
-                        setSubmitError(
-                          "Het e-mailadres lijkt niet geldig. Gebruik bijv. naam@bedrijf.nl.",
-                        );
-                        return;
-                      }
+                    {/* Budget */}
+                    <div className="border border-white/10 bg-white/5 p-2">
+                      {editingKey === "budgetRange" ? (
+                        <div className="space-y-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/60">BUDGET</span>
+                          <div className="flex gap-1">
+                            <select value={editValue} onChange={(e) => {setEditValue(e.target.value); if (editError) setEditError("");}} onKeyDown={(e) => {if (e.key === "Enter") {if (!editValue.trim()) {setEditError("Selecteer budget."); return;} setAnswers((prev) => ({...prev, budgetRange: editValue as BudgetRangeId})); setEditError(""); setEditingKey(null);} if (e.key === "Escape") setEditingKey(null);}} autoFocus className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-2 py-1 text-xs text-white outline-none focus:border-[#c8ff00]/70">
+                              <option value="">Kies...</option>
+                              {BUDGET_RANGES.map((b) => (<option key={b.id} value={b.id}>{b.label}</option>))}
+                            </select>
+                            <button onClick={() => {if (!editValue.trim()) {setEditError("Selecteer budget."); return;} setAnswers((prev) => ({...prev, budgetRange: editValue as BudgetRangeId})); setEditError(""); setEditingKey(null);}} className="px-2 py-1 border border-[#c8ff00]/40 bg-[#c8ff00]/10 text-[#c8ff00] hover:bg-[#c8ff00] hover:text-black font-bold text-xs">✓</button>
+                          </div>
+                          {editError && <p className="text-xs text-red-400">{editError}</p>}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/50">BUDGET</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-white/80 line-clamp-1">{BUDGET_RANGES.find((b) => b.id === answers.budgetRange)?.label ?? "—"}</span>
+                            <button onClick={() => {setEditingKey("budgetRange"); setEditValue(answers.budgetRange ?? "");}} className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-                      try {
-                        setSubmitError("");
-                        setSubmitSuccess("");
-                        setIsSubmitting(true);
+                    {/* Email */}
+                    <div className="border border-white/10 bg-white/5 p-2">
+                      {editingKey === "email" ? (
+                        <div className="space-y-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/60">📧 E-MAIL</span>
+                          <div className="flex gap-1">
+                            <input type="email" value={editValue} onChange={(e) => {setEditValue(e.target.value); if (editError) setEditError("");}} onKeyDown={(e) => {if (e.key === "Enter") {const trimmed = editValue.trim(); if (!trimmed) {setEditError("Vul in."); return;} const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailPattern.test(trimmed)) {setEditError("Geldig e-mail!"); return;} setAnswers((prev) => ({...prev, email: trimmed})); setEditError(""); setEditingKey(null);} if (e.key === "Escape") setEditingKey(null);}} autoFocus className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-2 py-1 text-xs text-white outline-none focus:border-[#c8ff00]/70"/>
+                            <button onClick={() => {const trimmed = editValue.trim(); if (!trimmed) {setEditError("Vul in."); return;} const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailPattern.test(trimmed)) {setEditError("Geldig e-mail!"); return;} setAnswers((prev) => ({...prev, email: trimmed})); setEditError(""); setEditingKey(null);}} className="px-2 py-1 border border-[#c8ff00]/40 bg-[#c8ff00]/10 text-[#c8ff00] hover:bg-[#c8ff00] hover:text-black font-bold text-xs">✓</button>
+                          </div>
+                          {editError && <p className="text-xs text-red-400">{editError}</p>}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/50">📧 E-MAIL</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-white/80 line-clamp-1">{answers.email ?? "—"}</span>
+                            <button onClick={() => {setEditingKey("email"); setEditValue(answers.email ?? "");}} className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-                        // Hier zou normaal een API‑call komen om de lead te versturen.
-                        // Voor nu simuleren we een korte wachttijd.
-                        await new Promise((resolve) => setTimeout(resolve, 900));
+                    {/* Company */}
+                    <div className="border border-white/10 bg-white/5 p-2">
+                      {editingKey === "company" ? (
+                        <div className="space-y-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/60">🏢 BEDRIJF</span>
+                          <div className="flex gap-1">
+                            <input type="text" value={editValue} onChange={(e) => {setEditValue(e.target.value); if (editError) setEditError("");}} onKeyDown={(e) => {if (e.key === "Enter") {const trimmed = editValue.trim(); if (!trimmed) {setEditError("Vul in."); return;} setAnswers((prev) => ({...prev, company: trimmed})); setEditError(""); setEditingKey(null);} if (e.key === "Escape") setEditingKey(null);}} autoFocus className="flex-1 border border-[#c8ff00]/40 bg-white/6 px-2 py-1 text-xs text-white outline-none focus:border-[#c8ff00]/70"/>
+                            <button onClick={() => {const trimmed = editValue.trim(); if (!trimmed) {setEditError("Vul in."); return;} setAnswers((prev) => ({...prev, company: trimmed})); setEditError(""); setEditingKey(null);}} className="px-2 py-1 border border-[#c8ff00]/40 bg-[#c8ff00]/10 text-[#c8ff00] hover:bg-[#c8ff00] hover:text-black font-bold text-xs">✓</button>
+                          </div>
+                          {editError && <p className="text-xs text-red-400">{editError}</p>}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-1">
+                          <span className="font-pixel text-[6px] text-[#c8ff00]/50">🏢 BEDRIJF</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-white/80 line-clamp-1">{answers.company ?? "—"}</span>
+                            <button onClick={() => {setEditingKey("company"); setEditValue(answers.company ?? "");}} className="text-[10px] text-white/30 group-hover:text-[#c8ff00] opacity-0 group-hover:opacity-100">✎</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
-                        setSubmitSuccess("Je gegevens zijn succesvol verzonden. We sturen je terug naar de homepage.");
-                        // Korte delay zodat de speler het bericht kan lezen
-                        setTimeout(() => {
-                          setShowHomepage(true);
-                        }, 1800);
-                      } catch (err) {
-                        setSubmitError(
-                          `Er ging iets mis bij het verzenden van je gegevens. Probeer het opnieuw of neem direct contact op. ${
-                            err instanceof Error ? `Details: ${err.message}` : ""
-                          }`,
-                        );
-                      } finally {
-                        setIsSubmitting(false);
-                      }
-                    }}
-                    disabled={!!editingKey || isSubmitting}
-                    className="font-pixel mt-5 w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-3.5 text-sm text-black transition-all hover:bg-transparent hover:text-[#c8ff00] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {isSubmitting ? "VERZENDEN..." : "VERZENDEN →"}
+                {/* Submit button */}
+                <div className="border-t-2 border-[#c8ff00]/30 bg-gradient-to-r from-transparent via-[#c8ff00]/5 to-transparent p-3">
+                  <button onClick={async () => {if (editingKey) {setSubmitError("Bewerk af!"); return;} if (!answers.email || !answers.company || !answers.category || !answers.budgetRange) {setSubmitError("Vul alles in!"); return;} const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailPattern.test(answers.email)) {setSubmitError("Geldig e-mail!"); return;} try {setSubmitError(""); setSubmitSuccess(""); setIsSubmitting(true); await new Promise((resolve) => setTimeout(resolve, 900)); setSubmitSuccess("✓ Verzonden!"); setTimeout(() => {setShowHomepage(true);}, 2200);} catch (err) {setSubmitError("Fout bij verzenden!");} finally {setIsSubmitting(false);}}} disabled={!!editingKey || isSubmitting} className="font-pixel w-full border-2 border-[#c8ff00] bg-[#c8ff00] py-2.5 text-xs text-black font-bold hover:bg-transparent hover:text-[#c8ff00] disabled:opacity-40 uppercase transition-all hover:shadow-[0_0_20px_rgba(200,255,0,0.6)] active:scale-95 relative overflow-hidden" style={{ animation: isSubmitting ? 'none' : 'textGlow 2s ease-in-out 1.5s infinite' }}>
+                    {!isSubmitting && <div className="absolute inset-0 opacity-0 hover:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer-border" style={{ animation: 'shimmerBorder 2s linear infinite' }} />}
+                    {isSubmitting ? "⏳ VERZENDEN..." : "🚀 PRIJS CLAIMEN"}
                   </button>
-                  {submitError && (
-                    <p className="mt-2 text-xs text-red-400">{submitError}</p>
-                  )}
-                  {submitSuccess && (
-                    <p className="mt-2 text-xs text-[#c8ff00]">{submitSuccess}</p>
-                  )}
+                  {submitError && <p className="mt-1 text-xs text-red-400 text-center">{submitError}</p>}
+                  {submitSuccess && <p className="mt-1 text-xs text-[#c8ff00] text-center animate-text-glow" style={{ animation: 'textGlow 2s ease-in-out infinite' }}>{submitSuccess}</p>}
                 </div>
               </div>
             </div>
