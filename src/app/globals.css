@@ -49,6 +49,155 @@ body {
   }
 }
 
+@keyframes ticketSpinIn {
+  from {
+    opacity: 0;
+    transform: rotateX(90deg) rotateY(0deg) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0deg) rotateY(0deg) scale(1);
+  }
+}
+
+@keyframes ticketBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes starSpin {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes pulseScale {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes glowBorder {
+  0%, 100% {
+    border-color: #c8ff00;
+    box-shadow: 0 0 30px rgba(200, 255, 0, 0.3), inset 0 0 30px rgba(200, 255, 0, 0.05);
+  }
+  50% {
+    border-color: #d8ff20;
+    box-shadow: 0 0 50px rgba(200, 255, 0, 0.6), inset 0 0 50px rgba(200, 255, 0, 0.15);
+  }
+}
+
+@keyframes floatingTicket {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes emanatingRings {
+  0% {
+    box-shadow: 0 0 0 0 rgba(200, 255, 0, 0.7), inset 0 0 0 0 rgba(200, 255, 0, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(200, 255, 0, 0), inset 0 0 0 0 rgba(200, 255, 0, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 0 40px rgba(200, 255, 0, 0), inset 0 0 0 0 rgba(200, 255, 0, 0);
+  }
+}
+
+@keyframes shimmerBorder {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes borderFlash {
+  0%, 100% {
+    border-color: #c8ff00;
+    opacity: 1;
+  }
+  50% {
+    border-color: #c8ff00;
+    opacity: 0.6;
+  }
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(200, 255, 0, 0.5), 0 0 20px rgba(200, 255, 0, 0.2);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(200, 255, 0, 0.8), 0 0 40px rgba(200, 255, 0, 0.4), 0 0 60px rgba(200, 255, 0, 0.2);
+  }
+}
+
+@keyframes cornerFlash {
+  0%, 100% {
+    box-shadow: inset 0 0 0 0 rgba(200, 255, 0, 0);
+  }
+  50% {
+    box-shadow: 
+      inset 5px 5px 0 0 rgba(200, 255, 0, 0.3),
+      inset -5px -5px 0 0 rgba(200, 255, 0, 0.3);
+  }
+}
+
+.animate-glow-border {
+  animation: glowBorder 3s ease-in-out infinite;
+}
+
+.animate-floating-ticket {
+  animation: floatingTicket 4s ease-in-out infinite;
+}
+
+.animate-emanating-rings {
+  animation: emanatingRings 2s ease-out infinite;
+}
+
+.animate-shimmer-border {
+  animation: shimmerBorder 3s linear infinite;
+}
+
+.animate-border-flash {
+  animation: borderFlash 2s ease-in-out infinite;
+}
+
+.animate-text-glow {
+  animation: textGlow 3s ease-in-out infinite;
+}
+
+.animate-corner-flash {
+  animation: cornerFlash 2.5s ease-in-out infinite;
+}
+
 .animate-fade-in-up {
   animation: fadeInUp 0.6s ease-out forwards;
 }
@@ -59,4 +208,25 @@ body {
 
 .animate-blink {
   animation: blink 1s step-end infinite;
+}
+
+.animate-ticket-spin-in {
+  animation: ticketSpinIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.animate-ticket-bounce {
+  animation: ticketBounce 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 3s infinite;
+  background-size: 1000px 100%;
+}
+
+.animate-star-spin {
+  animation: starSpin 4s linear infinite;
+}
+
+.animate-pulse-scale {
+  animation: pulseScale 2s ease-in-out infinite;
 }
